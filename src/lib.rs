@@ -12,7 +12,7 @@ pub enum Bit8 {
 }
 
 #[derive(Copy, Clone)]
-struct Register8 {
+pub struct Register8 {
     val: u8,
 }
 
@@ -74,7 +74,7 @@ pub enum Bit16 {
 }
 
 #[derive(Copy, Clone)]
-struct Register16 {
+pub struct Register16 {
     val: u16,
 }
 
@@ -151,7 +151,7 @@ pub enum Bit32 {
 }
 
 #[derive(Copy, Clone)]
-struct Register32 {
+pub struct Register32 {
     val: u32,
 }
 

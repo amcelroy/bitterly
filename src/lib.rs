@@ -1,5 +1,6 @@
 #![no_std]
 
+#[derive(Copy, Clone)]
 pub enum Bit8 {
     _0,
     _1,
@@ -53,7 +54,7 @@ impl Register8 {
     }
 }
 
-
+#[derive(Copy, Clone)]
 pub enum Bit16 {
     _0,
     _1,
@@ -115,6 +116,7 @@ impl Register16 {
     }
 }
 
+#[derive(Copy, Clone)]
 pub enum Bit32 {
     _0,
     _1,

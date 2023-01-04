@@ -1,4 +1,4 @@
-//#![no_std]
+#![no_std]
 
 pub enum Bit8 {
     _0,

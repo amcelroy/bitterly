@@ -16,5 +16,7 @@ constrained bitfields that can be set, cleared, or toggled. When done, use the
 
 
 ## Useage example for u32
+```
 let output = Register32::new(0).set(Bit32::_0).set(Bit32::_31).value();
 assert_eq!(output, 0b10000000_00000000_00000000_00000001);
+```

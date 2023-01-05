@@ -52,6 +52,14 @@ impl Register8 {
         self.val ^= 1 << (bit as u8);
         self
     }
+
+    pub fn is_set(self, bit: Bit8) -> bool {
+        self.val & (1 << (bit as u8)) != 0
+    }
+
+    pub fn is_clear(self, bit: Bit8) -> bool {
+        self.val & (1 << (bit as u8)) == 0
+    }
 }
 
 #[derive(Copy, Clone)]
@@ -113,6 +121,14 @@ impl Register16 {
     pub fn toggle(mut self, bit: Bit16) -> Self {
         self.val ^= 1 << (bit as u16);
         self
+    }
+
+    pub fn is_set(self, bit: Bit16) -> bool {
+        self.val & (1 << (bit as u16)) != 0
+    }
+
+    pub fn is_clear(self, bit: Bit16) -> bool {
+        self.val & (1 << (bit as u16)) == 0
     }
 }
 
@@ -192,6 +208,14 @@ impl Register32 {
         self.val ^= 1 << (bit as u32);
         self
     }
+
+    pub fn is_set(self, bit: Bit32) -> bool {
+        self.val & (1 << (bit as u32)) != 0
+    }
+
+    pub fn is_clear(self, bit: Bit32) -> bool {
+        self.val & (1 << (bit as u32)) == 0
+    }
 }
 
 
@@ -207,23 +231,83 @@ mod tests {
         // number = crate::u32::set(number, u32::Bit32::_1);
         assert_eq!(register.value(), 0b00000000_00000000_00000000_0000010);
 
-        assert_eq!(register.clear(Bit32::_1).value(), 0);
+        register = register.clear(Bit32::_1);
+
+        assert_eq!(register.value(), 0);
+
+        register = register.set(Bit32::_0).set(Bit32::_1).set(Bit32::_2).set(Bit32::_3);
+
+        assert_eq!(register.value(), 0xF);
 
         assert_eq!(Register32::new(1).clear(Bit32::_0).value(), 0);
 
         assert_eq!(Register32::new(0).set_all().value(), u32::MAX);
 
         assert_eq!(Register32::new(2).set(Bit32::_0).value(), 3);
+
+        assert_eq!(Register32::new(4).is_set(Bit32::_2), true);
+
+        assert_eq!(Register32::new(0).is_clear(Bit32::_0), true);
+
+        assert_eq!(register.is_clear(Bit32::_5), true);
     }
 
     #[test]
     fn test_u16() {
+        use crate::{Bit16, Register16};
 
+        let mut register = Register16::new(0);
+        register = register.set(Bit16::_1);
+
+        // number = crate::u32::set(number, u32::Bit32::_1);
+        assert_eq!(register.value(), 0b00000000_0000010);
+
+        register = register.clear(Bit16::_1);
+
+        assert_eq!(register.value(), 0);
+
+        register = register.set(Bit16::_0).set(Bit16::_1).set(Bit16::_2).set(Bit16::_3);
+
+        assert_eq!(register.value(), 0xF);
+
+        assert_eq!(Register16::new(1).clear(Bit16::_0).value(), 0);
+
+        assert_eq!(Register16::new(0).set_all().value(), u16::MAX);
+
+        assert_eq!(Register16::new(2).set(Bit16::_0).value(), 3);
+
+        assert_eq!(Register16::new(4).is_set(Bit16::_2), true);
+
+        assert_eq!(register.is_clear(Bit16::_5), true);
     }
 
     #[test]
     fn test_u8() {
+        use crate::{Bit8, Register8};
 
+        let mut register = Register8::new(0);
+        register = register.set(Bit8::_1);
+
+        // number = crate::u32::set(number, u32::Bit32::_1);
+        assert_eq!(register.value(), 0b0000010);
+
+        register = register.clear(Bit8::_1);
+
+        assert_eq!(register.value(), 0);
+
+        register = register.set(Bit8::_0).set(Bit8::_1).set(Bit8::_2).set(Bit8::_3);
+
+        assert_eq!(register.value(), 0xF);
+
+        assert_eq!(Register8::new(1).clear(Bit8::_0).value(), 0);
+
+        assert_eq!(Register8::new(0).set_all().value(), u8::MAX);
+
+        assert_eq!(Register8::new(2).set(Bit8::_0).value(), 3);
+
+        assert_eq!(Register8::new(4).is_set(Bit8::_2), true);
+
+        assert_eq!(register.is_clear(Bit8::_5), true);
     }
 
 }

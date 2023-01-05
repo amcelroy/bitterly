@@ -250,6 +250,15 @@ mod tests {
         assert_eq!(Register32::new(0).is_clear(Bit32::_0), true);
 
         assert_eq!(register.is_clear(Bit32::_5), true);
+
+        register = register.toggle(Bit32::_5);
+
+        assert_eq!(register.is_set(Bit32::_5), true);
+
+        register = register.toggle(Bit32::_5);
+
+        assert_eq!(register.is_set(Bit32::_5), false);
+
     }
 
     #[test]
@@ -279,6 +288,14 @@ mod tests {
         assert_eq!(Register16::new(4).is_set(Bit16::_2), true);
 
         assert_eq!(register.is_clear(Bit16::_5), true);
+
+        register = register.toggle(Bit16::_5);
+
+        assert_eq!(register.is_set(Bit16::_5), true);
+
+        register = register.toggle(Bit16::_5);
+
+        assert_eq!(register.is_set(Bit16::_5), false);
     }
 
     #[test]
@@ -308,6 +325,14 @@ mod tests {
         assert_eq!(Register8::new(4).is_set(Bit8::_2), true);
 
         assert_eq!(register.is_clear(Bit8::_5), true);
+
+        register = register.toggle(Bit8::_5);
+
+        assert_eq!(register.is_set(Bit8::_5), true);
+
+        register = register.toggle(Bit8::_5);
+
+        assert_eq!(register.is_set(Bit8::_5), false);
     }
 
 }

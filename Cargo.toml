@@ -1,7 +1,13 @@
 [package]
 name = "bitterly"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
+description = "No frills bit manipulation library"
+repository = "https://github.com/amcelroy/bitterly"
+readme = "README.md"
+keywords = ["embedded", "bit manipulation", "registers"]
+authors = ["Austin McElroy <mcelroy.austin@gmail.com>"]
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

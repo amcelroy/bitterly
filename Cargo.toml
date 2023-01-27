@@ -1,6 +1,6 @@
 [package]
 name = "bitterly"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 description = "No frills bit manipulation library"
 repository = "https://github.com/amcelroy/bitterly"

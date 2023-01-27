@@ -60,6 +60,11 @@ impl Register8 {
     pub fn is_clear(self, bit: Bit8) -> bool {
         self.val & (1 << (bit as u8)) == 0
     }
+
+    pub fn update(mut self, new_val: u8) -> Self {
+        self.val = new_val;
+        self
+    }
 }
 
 #[derive(Copy, Clone)]
@@ -129,6 +134,11 @@ impl Register16 {
 
     pub fn is_clear(self, bit: Bit16) -> bool {
         self.val & (1 << (bit as u16)) == 0
+    }
+
+    pub fn update(mut self, new_val: u16) -> Self {
+        self.val = new_val;
+        self
     }
 }
 
@@ -215,6 +225,11 @@ impl Register32 {
 
     pub fn is_clear(self, bit: Bit32) -> bool {
         self.val & (1 << (bit as u32)) == 0
+    }
+
+    pub fn update(mut self, new_val: u32) -> Self {
+        self.val = new_val;
+        self
     }
 }
 

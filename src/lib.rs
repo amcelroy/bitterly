@@ -13,61 +13,6 @@ pub enum Bit8 {
 }
 
 #[derive(Copy, Clone)]
-pub struct Register8 {
-    val: u8,
-}
-
-impl Register8 {
-    pub fn new(val: u8) -> Self {
-        Self {
-            val: val,
-        }
-    }
-
-    pub fn value(&self) -> u8 {
-        self.val
-    }
-
-    pub fn set(&mut self, bit: Bit8) -> &mut Self {
-        self.val |= 1 << (bit as u8);
-        self
-    }
-
-    pub fn set_all(&mut self) -> &mut Self {
-        self.val = u8::MAX;
-        self
-    }
-
-    pub fn clear(&mut self, bit: Bit8) -> &mut Self {
-        self.val &= !(1 << (bit as u8));
-        self
-    }
-
-    pub fn clear_all(&mut self) -> &mut Self {
-        self.val = 0;
-        self
-    }
-
-    pub fn toggle(&mut self, bit: Bit8) -> &mut Self {
-        self.val ^= 1 << (bit as u8);
-        self
-    }
-
-    pub fn is_set(&self, bit: Bit8) -> bool {
-        self.val & (1 << (bit as u8)) != 0
-    }
-
-    pub fn is_clear(&mut self, bit: Bit8) -> bool {
-        self.val & (1 << (bit as u8)) == 0
-    }
-
-    pub fn update(&mut self, new_val: u8) -> &mut Self {
-        self.val = new_val;
-        self
-    }
-}
-
-#[derive(Copy, Clone)]
 pub enum Bit16 {
     _0,
     _1,
@@ -85,61 +30,6 @@ pub enum Bit16 {
     _13,
     _14,
     _15,
-}
-
-#[derive(Copy, Clone)]
-pub struct Register16 {
-    val: u16,
-}
-
-impl Register16 {
-    pub fn new(val: u16) -> Self {
-        Self {
-            val: val,
-        }
-    }
-
-    pub fn value(&self) -> u16 {
-        self.val
-    }
-
-    pub fn set(&mut self, bit: Bit16) -> &mut Self {
-        self.val |= 1 << (bit as u16);
-        self
-    }
-
-    pub fn set_all(&mut self) -> &mut Self {
-        self.val = u16::MAX;
-        self
-    }
-
-    pub fn clear(&mut self, bit: Bit16) -> &mut Self {
-        self.val &= !(1 << (bit as u16));
-        self
-    }
-
-    pub fn clear_all(&mut self) -> &mut Self {
-        self.val = 0;
-        self
-    }
-
-    pub fn toggle(&mut self, bit: Bit16) -> &mut Self {
-        self.val ^= 1 << (bit as u16);
-        self
-    }
-
-    pub fn is_set(&mut self, bit: Bit16) -> bool {
-        self.val & (1 << (bit as u16)) != 0
-    }
-
-    pub fn is_clear(&mut self, bit: Bit16) -> bool {
-        self.val & (1 << (bit as u16)) == 0
-    }
-
-    pub fn update(&mut self, new_val: u16) -> &mut Self {
-        self.val = new_val;
-        self
-    }
 }
 
 #[derive(Copy, Clone)]
@@ -178,61 +68,68 @@ pub enum Bit32 {
     _31,
 }
 
-#[derive(Copy, Clone)]
-pub struct Register32 {
-    val: u32,
-}
+macro_rules! register {
+    ($reg_name:ident, $reg_type:ty , $bit_type:ty) => {
+        #[derive(Copy, Clone)]
+        pub struct $reg_name {
+            val: $reg_type,
+        }
 
-impl Register32 {
-    pub fn new(val: u32) -> Self {
-        Self {
-            val: val,
+        impl $reg_name {
+            pub fn new(val: $reg_type) -> Self {
+                Self {
+                    val: val,
+                }
+            }
+        
+            pub fn value(&self) -> $reg_type {
+                self.val
+            }
+        
+            pub fn set(&mut self, bit: $bit_type) -> &mut Self {
+                self.val |= 1 << (bit as $reg_type);
+                self
+            }
+        
+            pub fn set_all(&mut self) -> &mut Self {
+                self.val = <$reg_type>::MAX;
+                self
+            }
+        
+            pub fn clear(&mut self, bit: $bit_type) -> &mut Self {
+                self.val &= !(1 << (bit as $reg_type));
+                self
+            }
+        
+            pub fn clear_all(&mut self) -> &mut Self {
+                self.val = 0;
+                self
+            }
+        
+            pub fn toggle(&mut self, bit: $bit_type) -> &mut Self {
+                self.val ^= 1 << (bit as $reg_type);
+                self
+            }
+        
+            pub fn is_set(&self, bit: $bit_type) -> bool {
+                self.val & (1 << (bit as $reg_type)) != 0
+            }
+        
+            pub fn is_clear(&self, bit: $bit_type) -> bool {
+                self.val & (1 << (bit as $reg_type)) == 0
+            }
+        
+            pub fn update(&mut self, new_val: $reg_type) -> &mut Self {
+                self.val = new_val;
+                self
+            }
         }
     }
-
-    pub fn value(&self) -> u32 {
-        self.val
-    }
-
-    pub fn set(&mut self, bit: Bit32) -> &mut Self {
-        self.val |= 1 << (bit as u32);
-        self
-    }
-
-    pub fn set_all(&mut self) -> &mut Self {
-        self.val = u32::MAX;
-        self
-    }
-
-    pub fn clear(&mut self, bit: Bit32) -> &mut Self {
-        self.val &= !(1 << (bit as u32));
-        self
-    }
-
-    pub fn clear_all(&mut self) -> &mut Self {
-        self.val = 0;
-        self
-    }
-
-    pub fn toggle(&mut self, bit: Bit32) -> &mut Self {
-        self.val ^= 1 << (bit as u32);
-        self
-    }
-
-    pub fn is_set(&self, bit: Bit32) -> bool {
-        self.val & (1 << (bit as u32)) != 0
-    }
-
-    pub fn is_clear(&self, bit: Bit32) -> bool {
-        self.val & (1 << (bit as u32)) == 0
-    }
-
-    pub fn update(&mut self, new_val: u32) -> &mut Self {
-        self.val = new_val;
-        self
-    }
 }
 
+register!(Register32, u32, Bit32);
+register!(Register16, u16, Bit16);
+register!(Register8, u8, Bit8);
 
 #[cfg(test)]
 mod tests {

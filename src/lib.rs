@@ -24,44 +24,44 @@ impl Register8 {
         }
     }
 
-    pub fn value(self) -> u8 {
+    pub fn value(&self) -> u8 {
         self.val
     }
 
-    pub fn set(mut self, bit: Bit8) -> Self {
+    pub fn set(&mut self, bit: Bit8) -> &mut Self {
         self.val |= 1 << (bit as u8);
         self
     }
 
-    pub fn set_all(mut self) -> Self {
+    pub fn set_all(&mut self) -> &mut Self {
         self.val = u8::MAX;
         self
     }
 
-    pub fn clear(mut self, bit: Bit8) -> Self {
+    pub fn clear(&mut self, bit: Bit8) -> &mut Self {
         self.val &= !(1 << (bit as u8));
         self
     }
 
-    pub fn clear_all(mut self) -> Self {
+    pub fn clear_all(&mut self) -> &mut Self {
         self.val = 0;
         self
     }
 
-    pub fn toggle(mut self, bit: Bit8) -> Self {
+    pub fn toggle(&mut self, bit: Bit8) -> &mut Self {
         self.val ^= 1 << (bit as u8);
         self
     }
 
-    pub fn is_set(self, bit: Bit8) -> bool {
+    pub fn is_set(&self, bit: Bit8) -> bool {
         self.val & (1 << (bit as u8)) != 0
     }
 
-    pub fn is_clear(self, bit: Bit8) -> bool {
+    pub fn is_clear(&mut self, bit: Bit8) -> bool {
         self.val & (1 << (bit as u8)) == 0
     }
 
-    pub fn update(mut self, new_val: u8) -> Self {
+    pub fn update(&mut self, new_val: u8) -> &mut Self {
         self.val = new_val;
         self
     }
@@ -99,44 +99,44 @@ impl Register16 {
         }
     }
 
-    pub fn value(self) -> u16 {
+    pub fn value(&self) -> u16 {
         self.val
     }
 
-    pub fn set(mut self, bit: Bit16) -> Self {
+    pub fn set(&mut self, bit: Bit16) -> &mut Self {
         self.val |= 1 << (bit as u16);
         self
     }
 
-    pub fn set_all(mut self) -> Self {
+    pub fn set_all(&mut self) -> &mut Self {
         self.val = u16::MAX;
         self
     }
 
-    pub fn clear(mut self, bit: Bit16) -> Self {
+    pub fn clear(&mut self, bit: Bit16) -> &mut Self {
         self.val &= !(1 << (bit as u16));
         self
     }
 
-    pub fn clear_all(mut self) -> Self {
+    pub fn clear_all(&mut self) -> &mut Self {
         self.val = 0;
         self
     }
 
-    pub fn toggle(mut self, bit: Bit16) -> Self {
+    pub fn toggle(&mut self, bit: Bit16) -> &mut Self {
         self.val ^= 1 << (bit as u16);
         self
     }
 
-    pub fn is_set(self, bit: Bit16) -> bool {
+    pub fn is_set(&mut self, bit: Bit16) -> bool {
         self.val & (1 << (bit as u16)) != 0
     }
 
-    pub fn is_clear(self, bit: Bit16) -> bool {
+    pub fn is_clear(&mut self, bit: Bit16) -> bool {
         self.val & (1 << (bit as u16)) == 0
     }
 
-    pub fn update(mut self, new_val: u16) -> Self {
+    pub fn update(&mut self, new_val: u16) -> &mut Self {
         self.val = new_val;
         self
     }
@@ -190,44 +190,44 @@ impl Register32 {
         }
     }
 
-    pub fn value(self) -> u32 {
+    pub fn value(&self) -> u32 {
         self.val
     }
 
-    pub fn set(mut self, bit: Bit32) -> Self {
+    pub fn set(&mut self, bit: Bit32) -> &mut Self {
         self.val |= 1 << (bit as u32);
         self
     }
 
-    pub fn set_all(mut self) -> Self {
+    pub fn set_all(&mut self) -> &mut Self {
         self.val = u32::MAX;
         self
     }
 
-    pub fn clear(mut self, bit: Bit32) -> Self {
+    pub fn clear(&mut self, bit: Bit32) -> &mut Self {
         self.val &= !(1 << (bit as u32));
         self
     }
 
-    pub fn clear_all(mut self) -> Self {
+    pub fn clear_all(&mut self) -> &mut Self {
         self.val = 0;
         self
     }
 
-    pub fn toggle(mut self, bit: Bit32) -> Self {
+    pub fn toggle(&mut self, bit: Bit32) -> &mut Self {
         self.val ^= 1 << (bit as u32);
         self
     }
 
-    pub fn is_set(self, bit: Bit32) -> bool {
+    pub fn is_set(&self, bit: Bit32) -> bool {
         self.val & (1 << (bit as u32)) != 0
     }
 
-    pub fn is_clear(self, bit: Bit32) -> bool {
+    pub fn is_clear(&self, bit: Bit32) -> bool {
         self.val & (1 << (bit as u32)) == 0
     }
 
-    pub fn update(mut self, new_val: u32) -> Self {
+    pub fn update(&mut self, new_val: u32) -> &mut Self {
         self.val = new_val;
         self
     }
@@ -241,16 +241,16 @@ mod tests {
         use crate::{Bit32, Register32};
 
         let mut register = Register32::new(0);
-        register = register.set(Bit32::_1);
+        register.set(Bit32::_1);
 
         // number = crate::u32::set(number, u32::Bit32::_1);
         assert_eq!(register.value(), 0b00000000_00000000_00000000_0000010);
 
-        register = register.clear(Bit32::_1);
+        register.clear(Bit32::_1);
 
         assert_eq!(register.value(), 0);
 
-        register = register.set(Bit32::_0).set(Bit32::_1).set(Bit32::_2).set(Bit32::_3);
+        register.set(Bit32::_0).set(Bit32::_1).set(Bit32::_2).set(Bit32::_3);
 
         assert_eq!(register.value(), 0xF);
 
@@ -266,11 +266,11 @@ mod tests {
 
         assert_eq!(register.is_clear(Bit32::_5), true);
 
-        register = register.toggle(Bit32::_5);
+        register.toggle(Bit32::_5);
 
         assert_eq!(register.is_set(Bit32::_5), true);
 
-        register = register.toggle(Bit32::_5);
+        register.toggle(Bit32::_5);
 
         assert_eq!(register.is_set(Bit32::_5), false);
 
@@ -281,16 +281,16 @@ mod tests {
         use crate::{Bit16, Register16};
 
         let mut register = Register16::new(0);
-        register = register.set(Bit16::_1);
+        let r = register.set(Bit16::_1);
 
         // number = crate::u32::set(number, u32::Bit32::_1);
         assert_eq!(register.value(), 0b00000000_0000010);
 
-        register = register.clear(Bit16::_1);
+        register.clear(Bit16::_1);
 
         assert_eq!(register.value(), 0);
 
-        register = register.set(Bit16::_0).set(Bit16::_1).set(Bit16::_2).set(Bit16::_3);
+        register.set(Bit16::_0).set(Bit16::_1).set(Bit16::_2).set(Bit16::_3);
 
         assert_eq!(register.value(), 0xF);
 
@@ -304,11 +304,11 @@ mod tests {
 
         assert_eq!(register.is_clear(Bit16::_5), true);
 
-        register = register.toggle(Bit16::_5);
+        register.toggle(Bit16::_5);
 
         assert_eq!(register.is_set(Bit16::_5), true);
 
-        register = register.toggle(Bit16::_5);
+        register.toggle(Bit16::_5);
 
         assert_eq!(register.is_set(Bit16::_5), false);
     }
@@ -318,16 +318,16 @@ mod tests {
         use crate::{Bit8, Register8};
 
         let mut register = Register8::new(0);
-        register = register.set(Bit8::_1);
+        register.set(Bit8::_1);
 
         // number = crate::u32::set(number, u32::Bit32::_1);
         assert_eq!(register.value(), 0b0000010);
 
-        register = register.clear(Bit8::_1);
+        register.clear(Bit8::_1);
 
         assert_eq!(register.value(), 0);
 
-        register = register.set(Bit8::_0).set(Bit8::_1).set(Bit8::_2).set(Bit8::_3);
+        register.set(Bit8::_0).set(Bit8::_1).set(Bit8::_2).set(Bit8::_3);
 
         assert_eq!(register.value(), 0xF);
 
@@ -341,11 +341,11 @@ mod tests {
 
         assert_eq!(register.is_clear(Bit8::_5), true);
 
-        register = register.toggle(Bit8::_5);
+        register.toggle(Bit8::_5);
 
         assert_eq!(register.is_set(Bit8::_5), true);
 
-        register = register.toggle(Bit8::_5);
+        register.toggle(Bit8::_5);
 
         assert_eq!(register.is_set(Bit8::_5), false);
     }

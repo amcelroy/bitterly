@@ -1,6 +1,6 @@
 [package]
 name = "bitterly"
-version = "0.1.5"
+version = "0.2.0"
 edition = "2021"
 description = "No frills bit manipulation library"
 repository = "https://github.com/amcelroy/bitterly"
@@ -14,3 +14,7 @@ authors = ["Austin McElroy <mcelroy.austin@gmail.com>"]
 [lib]
 name = "bitterly"
 path = "./src/lib.rs"
+
+[dependencies]
+paste = "1.0.11"
+

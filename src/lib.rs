@@ -1,251 +1,138 @@
 #![no_std]
 
-#[derive(Copy, Clone)]
-pub enum Bit8 {
-    _0,
-    _1,
-    _2,
-    _3,
-    _4,
-    _5,
-    _6,
-    _7,
-}
+pub use paste::paste;
 
-#[derive(Copy, Clone)]
-pub enum Bit16 {
-    _0,
-    _1,
-    _2,
-    _3,
-    _4,
-    _5,
-    _6,
-    _7,
-    _8,
-    _9,
-    _10,
-    _11,
-    _12,
-    _13,
-    _14,
-    _15,
-}
-
-#[derive(Copy, Clone)]
-pub enum Bit32 {
-    _0,
-    _1,
-    _2,
-    _3,
-    _4,
-    _5,
-    _6,
-    _7,
-    _8,
-    _9,
-    _10,
-    _11,
-    _12,
-    _13,
-    _14,
-    _15,
-    _16,
-    _17,
-    _18,
-    _19,
-    _20,
-    _21,
-    _22,
-    _23,
-    _24,
-    _25,
-    _26,
-    _27,
-    _28,
-    _29,
-    _30,
-    _31,
-}
-
-macro_rules! register {
-    ($reg_name:ident, $reg_type:ty , $bit_type:ty) => {
+#[macro_export]
+macro_rules! register_maker {
+    ($reg_name:ident, $address_type:ty, $reg_type:ty) => {
         #[derive(Copy, Clone)]
         pub struct $reg_name {
-            val: $reg_type,
+            address: $address_type,
+            contents: $reg_type,
         }
 
         impl $reg_name {
-            pub fn new(val: $reg_type) -> Self {
+            pub fn new(address: $address_type, contents: $reg_type) -> Self {
                 Self {
-                    val: val,
+                    contents: contents,
+                    address: address,
                 }
             }
         
             pub fn value(&self) -> $reg_type {
-                self.val
+                self.contents
             }
         
-            pub fn set(&mut self, bit: $bit_type) -> &mut Self {
-                self.val |= 1 << (bit as $reg_type);
+            pub fn set(&mut self, bit: $reg_type) -> &mut Self {
+                self.contents |= 1 << (bit as $reg_type);
                 self
             }
         
             pub fn set_all(&mut self) -> &mut Self {
-                self.val = <$reg_type>::MAX;
+                self.contents = <$reg_type>::MAX;
                 self
             }
         
-            pub fn clear(&mut self, bit: $bit_type) -> &mut Self {
-                self.val &= !(1 << (bit as $reg_type));
+            pub fn clear(&mut self, bit: $reg_type) -> &mut Self {
+                self.contents &= !(1 << (bit as $reg_type));
                 self
             }
         
             pub fn clear_all(&mut self) -> &mut Self {
-                self.val = 0;
+                self.contents = 0;
                 self
             }
         
-            pub fn toggle(&mut self, bit: $bit_type) -> &mut Self {
-                self.val ^= 1 << (bit as $reg_type);
+            pub fn toggle(&mut self, bit: $reg_type) -> &mut Self {
+                self.contents ^= 1 << (bit as $reg_type);
                 self
             }
         
-            pub fn is_set(&self, bit: $bit_type) -> bool {
-                self.val & (1 << (bit as $reg_type)) != 0
+            pub fn is_set(&self, bit: $reg_type) -> bool {
+                self.contents & (1 << (bit as $reg_type)) != 0
             }
         
-            pub fn is_clear(&self, bit: $bit_type) -> bool {
-                self.val & (1 << (bit as $reg_type)) == 0
+            pub fn is_clear(&self, bit: $reg_type) -> bool {
+                self.contents & (1 << (bit as $reg_type)) == 0
             }
         
             pub fn update(&mut self, new_val: $reg_type) -> &mut Self {
-                self.val = new_val;
+                self.contents = new_val;
                 self
             }
         }
     }
 }
 
-register!(Register32, u32, Bit32);
-register!(Register16, u16, Bit16);
-register!(Register8, u8, Bit8);
+#[macro_export]
+macro_rules! register {
+    ($name:ident, $backing_register:ty) => {
+        pub fn get(&mut self) -> &mut $backing_register {
+            &mut self.register
+        }
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_u32() {
-        use crate::{Bit32, Register32};
+        pub fn new(reg: $backing_register) -> $name {
+            $name {
+                register: reg,
+            }
+        }
+    };
+}
 
-        let mut register = Register32::new(0);
-        register.set(Bit32::_1);
+#[macro_export]
+macro_rules! bitfield {
+    ($name:ident, $bit:expr, $type:ty) => {
+        paste! {
+            /// Gets bit $name
+            pub fn [<$name _get>](&self) -> bool {
+                self.register.is_set($bit)
+            }
+        }
 
-        // number = crate::u32::set(number, u32::Bit32::_1);
-        assert_eq!(register.value(), 0b00000000_00000000_00000000_0000010);
+        paste! {
+            pub fn [<$name _set>](&mut self, val: bool) -> &mut Self{
+                if val {
+                    self.register.set($bit);
+                } else {
+                    self.register.clear($bit);
+                }
+        
+                self
+            }
+        }
+    };
+}
 
-        register.clear(Bit32::_1);
+#[macro_export]
+macro_rules! bitrange {
+    ($name:ident, $end_bit:expr, $start_bit:expr, $type:ty) => {
+        paste! {
+            pub fn [<$name _get>](&self) -> $type {
+                (self.register.value() >> $start_bit) & self.[<$name _mask>]()
+            }
+        }
 
-        assert_eq!(register.value(), 0);
+        paste! {
+            pub fn [<$name _mask>](&self) -> $type {
+                ((2 as i128).pow($end_bit + 1 - $start_bit) - 1) as $type
+            }
+        }
 
-        register.set(Bit32::_0).set(Bit32::_1).set(Bit32::_2).set(Bit32::_3);
+        paste! {
+            pub fn [<$name _clear>](&mut self) -> &mut Self {
+                self.register.update(self.register.value() & (!self.[<$name _mask>]() << $start_bit));
+                self
+            }
+        }
 
-        assert_eq!(register.value(), 0xF);
-
-        assert_eq!(Register32::new(1).clear(Bit32::_0).value(), 0);
-
-        assert_eq!(Register32::new(0).set_all().value(), u32::MAX);
-
-        assert_eq!(Register32::new(2).set(Bit32::_0).value(), 3);
-
-        assert_eq!(Register32::new(4).is_set(Bit32::_2), true);
-
-        assert_eq!(Register32::new(0).is_clear(Bit32::_0), true);
-
-        assert_eq!(register.is_clear(Bit32::_5), true);
-
-        register.toggle(Bit32::_5);
-
-        assert_eq!(register.is_set(Bit32::_5), true);
-
-        register.toggle(Bit32::_5);
-
-        assert_eq!(register.is_set(Bit32::_5), false);
-
-    }
-
-    #[test]
-    fn test_u16() {
-        use crate::{Bit16, Register16};
-
-        let mut register = Register16::new(0);
-        let r = register.set(Bit16::_1);
-
-        // number = crate::u32::set(number, u32::Bit32::_1);
-        assert_eq!(register.value(), 0b00000000_0000010);
-
-        register.clear(Bit16::_1);
-
-        assert_eq!(register.value(), 0);
-
-        register.set(Bit16::_0).set(Bit16::_1).set(Bit16::_2).set(Bit16::_3);
-
-        assert_eq!(register.value(), 0xF);
-
-        assert_eq!(Register16::new(1).clear(Bit16::_0).value(), 0);
-
-        assert_eq!(Register16::new(0).set_all().value(), u16::MAX);
-
-        assert_eq!(Register16::new(2).set(Bit16::_0).value(), 3);
-
-        assert_eq!(Register16::new(4).is_set(Bit16::_2), true);
-
-        assert_eq!(register.is_clear(Bit16::_5), true);
-
-        register.toggle(Bit16::_5);
-
-        assert_eq!(register.is_set(Bit16::_5), true);
-
-        register.toggle(Bit16::_5);
-
-        assert_eq!(register.is_set(Bit16::_5), false);
-    }
-
-    #[test]
-    fn test_u8() {
-        use crate::{Bit8, Register8};
-
-        let mut register = Register8::new(0);
-        register.set(Bit8::_1);
-
-        // number = crate::u32::set(number, u32::Bit32::_1);
-        assert_eq!(register.value(), 0b0000010);
-
-        register.clear(Bit8::_1);
-
-        assert_eq!(register.value(), 0);
-
-        register.set(Bit8::_0).set(Bit8::_1).set(Bit8::_2).set(Bit8::_3);
-
-        assert_eq!(register.value(), 0xF);
-
-        assert_eq!(Register8::new(1).clear(Bit8::_0).value(), 0);
-
-        assert_eq!(Register8::new(0).set_all().value(), u8::MAX);
-
-        assert_eq!(Register8::new(2).set(Bit8::_0).value(), 3);
-
-        assert_eq!(Register8::new(4).is_set(Bit8::_2), true);
-
-        assert_eq!(register.is_clear(Bit8::_5), true);
-
-        register.toggle(Bit8::_5);
-
-        assert_eq!(register.is_set(Bit8::_5), true);
-
-        register.toggle(Bit8::_5);
-
-        assert_eq!(register.is_set(Bit8::_5), false);
-    }
-
+        paste! {
+            pub fn [<$name _set>](&mut self, val: $type) -> &mut Self{
+                self.[<$name _clear>](); // Clear bits
+                let masked_val = self.[<$name _mask>]() & val; // Mask input
+                self.register.update(self.register.value() | (masked_val << $start_bit));
+                self
+            }
+        }
+    };
 }
 

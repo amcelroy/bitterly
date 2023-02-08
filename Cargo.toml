@@ -5,7 +5,7 @@ edition = "2021"
 description = "No frills bit manipulation library"
 repository = "https://github.com/amcelroy/bitterly"
 readme = "README.md"
-keywords = ["embedded", "bit manipulation", "registers"]
+keywords = ["embedded", "bit", "manipulation", "registers"]
 authors = ["Austin McElroy <mcelroy.austin@gmail.com>"]
 license = "MIT"
 

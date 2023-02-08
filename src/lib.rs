@@ -27,18 +27,18 @@ pub use paste::paste;
 /// 
 ///     let mut status = I2CRegister::new(0, 0);
 /// 
-///     let mut value = status.set(0).set(2).set(4).set(6).value(); 
+///     let mut value = status.set_bit(0).set_bit(2).set_bit(4).set_bit(6).contents(); 
 ///     assert_eq!(value, 0x55, "Value should be 0x55");
 /// 
-///     value = status.clear(2).clear(4).value();
+///     value = status.clear_bit(2).clear_bit(4).contents();
 ///     assert_eq!(value, 0x41, "Value should be 0x41");
 /// 
-///     value = status.update(0x0FF0).value();
+///     value = status.update(0x0FF0).contents();
 ///     assert_eq!(value, 0x0FF0, "Value should be 0x0FF0");
 /// 
-///     assert_eq!(status.toggle(0).value(), 0x0FF1, "Value should be 0xFF1");
+///     assert_eq!(status.toggle_bit(0).contents(), 0x0FF1, "Value should be 0xFF1");
 ///     assert_eq!(status.is_set(0), true, "Bit 0 is_set should be true");
-///     assert_eq!(status.toggle(0).value(), 0x0FF0, "Value should be 0xFF0");
+///     assert_eq!(status.toggle_bit(0).contents(), 0x0FF0, "Value should be 0xFF0");
 ///     assert_eq!(status.is_clear(0), true, "Bit 0 is_clear should be true");
 /// }
 /// 
@@ -60,11 +60,11 @@ macro_rules! register_backer {
                 }
             }
         
-            pub fn value(&self) -> $reg_type {
+            pub fn contents(&self) -> $reg_type {
                 self.contents
             }
         
-            pub fn set(&mut self, bit: $reg_type) -> &mut Self {
+            pub fn set_bit(&mut self, bit: $reg_type) -> &mut Self {
                 self.contents |= 1 << (bit as $reg_type);
                 self
             }
@@ -74,7 +74,7 @@ macro_rules! register_backer {
                 self
             }
         
-            pub fn clear(&mut self, bit: $reg_type) -> &mut Self {
+            pub fn clear_bit(&mut self, bit: $reg_type) -> &mut Self {
                 self.contents &= !(1 << (bit as $reg_type));
                 self
             }
@@ -84,7 +84,7 @@ macro_rules! register_backer {
                 self
             }
         
-            pub fn toggle(&mut self, bit: $reg_type) -> &mut Self {
+            pub fn toggle_bit(&mut self, bit: $reg_type) -> &mut Self {
                 self.contents ^= 1 << (bit as $reg_type);
                 self
             }
@@ -136,13 +136,13 @@ macro_rules! register_backer {
 /// 
 ///     let mut status = StatusRegister::new(I2CRegister::new(register_address, register_init));
 /// 
-///     assert_eq!(status.por_set(true).get().value(), 0x2, "Status register should be 1");
+///     assert_eq!(status.por_set(true).register().contents(), 0x2, "Status register should be 1");
 ///     assert_eq!(status.por_get(), true, "Status register bit 1 should be true");
-///     assert_eq!(status.por_set(false).get().value(), 0x0, "Status register should be 0");
+///     assert_eq!(status.por_set(false).register().contents(), 0x0, "Status register should be 0");
 ///     assert_eq!(status.por_get(), false, "Status register bit 1 should be false");
 /// 
-///     assert_eq!(status.por_set(true).example_field_set(0x3).get().value(), 0xC02, "Example Field should be 3 (bit shifted 10), por bit should be 1 (bit shifted 1)");
-///     assert_eq!(status.example_field_clear().get().value(), 0x2, "Only the power on reset bit should be true");
+///     assert_eq!(status.por_set(true).example_field_set(0x3).register().contents(), 0xC02, "Example Field should be 3 (bit shifted 10), por bit should be 1 (bit shifted 1)");
+///     assert_eq!(status.example_field_clear().register().contents(), 0x2, "Only the power on reset bit should be true");
 /// }
 /// 
 /// ```
@@ -150,7 +150,7 @@ macro_rules! register_backer {
 #[macro_export]
 macro_rules! register {
     ($name:ident, $backing_register:ty) => {
-        pub fn get(&mut self) -> &mut $backing_register {
+        pub fn register(&mut self) -> &mut $backing_register {
             &mut self.register
         }
 
@@ -193,7 +193,7 @@ macro_rules! register {
 /// 
 ///     let mut status = StatusRegister::new(I2CRegister::new(register_address, register_init));
 /// 
-///     assert_eq!(status.por_set(true).bst_set(true).br_set(true).get().value(), 0x800A, "Status register should be 1");
+///     assert_eq!(status.por_set(true).bst_set(true).br_set(true).register().contents(), 0x800A, "Status register should be 1");
 /// }
 /// 
 /// ```
@@ -209,9 +209,9 @@ macro_rules! bitfield {
         paste! {
             pub fn [<$name _set>](&mut self, val: bool) -> &mut Self{
                 if val {
-                    self.register.set($bit);
+                    self.register.set_bit($bit);
                 } else {
-                    self.register.clear($bit);
+                    self.register.clear_bit($bit);
                 }
         
                 self
@@ -257,8 +257,8 @@ macro_rules! bitfield {
 ///     assert_eq!(modelcfg.refresh_get(), true, "Refresh should be 1");
 ///     
 ///     assert_eq!(modelcfg.modelid_mask(), 0x00F0, "Model ID mask should be 0x00F0");
-///     assert_eq!(modelcfg.modelid_set(0x2).get().value(), 0x8420, "ModelCfg register value should be 0x8420");
-///     assert_eq!(modelcfg.modelid_clear().get().value(), 0x8400, "ModelCfg register value should be 0x8420");
+///     assert_eq!(modelcfg.modelid_set(0x2).register().contents(), 0x8420, "ModelCfg register value should be 0x8420");
+///     assert_eq!(modelcfg.modelid_clear().register().contents(), 0x8400, "ModelCfg register value should be 0x8420");
 /// }
 /// 
 /// ```
@@ -267,7 +267,7 @@ macro_rules! bitrange {
     ($name:ident, $end_bit:expr, $start_bit:expr, $type:ty) => {
         paste! {
             pub fn [<$name _get>](&self) -> $type {
-                (self.register.value() & self.[<$name _mask>]()) >> $start_bit
+                (self.register.contents() & self.[<$name _mask>]()) >> $start_bit
             }
         }
 
@@ -279,7 +279,7 @@ macro_rules! bitrange {
 
         paste! {
             pub fn [<$name _clear>](&mut self) -> &mut Self {
-                self.register.update(self.register.value() & !self.[<$name _mask>]());
+                self.register.update(self.register.contents() & !self.[<$name _mask>]());
                 self
             }
         }
@@ -288,7 +288,7 @@ macro_rules! bitrange {
             pub fn [<$name _set>](&mut self, val: $type) -> &mut Self{
                 self.[<$name _clear>](); // Clear bits
                 let masked_val = self.[<$name _mask>]() & (val << $start_bit); // Mask input
-                self.register.update(self.register.value() | masked_val);
+                self.register.update(self.register.contents() | masked_val);
                 self
             }
         }

@@ -2,10 +2,9 @@
 mod tests {
     #[test]
     fn test_u32() {
-        use paste::paste;
-        use bitterly::register_maker;
+        use bitterly::register_backer;
 
-        register_maker!(Register32, u32, u32);
+        register_backer!(Register32, u32, u32);
 
         let mut register = Register32::new(0, 0);
         register.set(1);
@@ -46,9 +45,9 @@ mod tests {
     #[test]
     fn test_bitfields() {
         use paste::paste;
-        use bitterly::{register, register_maker, bitfield, bitrange};
+        use bitterly::{register, register_backer, bitfield, bitrange};
 
-        register_maker!(Register16, u8, u16);
+        register_backer!(Register16, u8, u16);
 
         pub struct TestRegister {
             register: Register16,
@@ -57,7 +56,7 @@ mod tests {
         impl TestRegister {
             register!(TestRegister, Register16);
 
-            bitfield!(twelve, 12, u16);
+            bitfield!(twelve, 12);
 
             bitrange!(vempty, 15, 13, u16);
 
@@ -66,9 +65,9 @@ mod tests {
 
         let mut test = TestRegister::new(Register16::new(0, 0));
 
-        assert_eq!(test.vempty_mask(), 0x0007, "Mask for bits 15, 14, 13 should be 0x7");
+        assert_eq!(test.vempty_mask(), 0xE000, "Mask for bits 15, 14, 13 should be 0xE000");
 
-        assert_eq!(test.middle_byte_mask(), 0x00FF, "Mask for bits 11..4 should be 0x00FF");
+        assert_eq!(test.middle_byte_mask(), 0x0FF0, "Mask for bits 11..4 should be 0x00FF");
 
         test.get().update(0xE000);
         assert_eq!(test.vempty_get(), 0x7, "VEmpty should be 0x7");
@@ -77,6 +76,9 @@ mod tests {
         assert_eq!(test.get().value(), 0, "Test register should be 0");
         assert_eq!(test.vempty_get(), 0, "VEmpty should be 0");
 
+        test.get().set_all();
+        assert_eq!(test.get().value(), 0xFFFF, "All bits should be set");
+        assert_eq!(test.vempty_clear().get().value(), 0x1FFF, "Test should be ");
         
         assert_eq!(test.get().clear_all().value(), 0, "Test register shoudl be 0");
         
@@ -94,6 +96,10 @@ mod tests {
         assert_eq!(test.vempty_get(), 0x7, "VEmpty should be 0x7");
         assert_eq!(test.middle_byte_get(), 0xFF, "Middle Byte should be 0xFF");
         assert_eq!(test.twelve_get(), true, "Bit Twelve should be true");
+
+        test.get().update(0x0);
+
+        assert_eq!(test.twelve_set(true).vempty_set(0x3).get().value(), 0x7000, "Example Field should be 3, por bit should be 1");
 
     }
 

@@ -1,3 +1,5 @@
+![bitterly](https://github.com/amcelroy/bitterly/actions/workflows/rust.yml/badge.svg)
+
 # bitterly
 Create registers that have an address type that can be different from the register data type. The registers can be created with named bits (`bitfield`) and ranges of bits (`bitrange`).
 

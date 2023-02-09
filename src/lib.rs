@@ -294,4 +294,3 @@ macro_rules! bitrange {
         }
     };
 }
-

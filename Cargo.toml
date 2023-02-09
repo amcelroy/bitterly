@@ -6,9 +6,8 @@ description = "No frills bit manipulation library"
 repository = "https://github.com/amcelroy/bitterly"
 readme = "README.md"
 keywords = ["embedded", "bit", "manipulation", "registers"]
-authors = ["Austin McElroy <mcelroy.austin@gmail.com>"]
+authors = ["Austin McElroy <mcelroy.austin@gmail.com, amcelroy@bridgesourcemedical.com>"]
 license = "MIT"
-
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

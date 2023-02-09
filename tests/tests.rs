@@ -101,4 +101,54 @@ mod tests {
 
     }
 
+    #[test]
+    fn documentation_macro_example() {
+        use paste::paste;
+        use bitterly::{register, register_backer, bitfield, bitrange};
+
+        register_backer!(I2CRegister, u8, u16);
+    }
+
+    #[test]
+    fn documentation_macro_example_2() {
+        use paste::paste;
+        use bitterly::{register, register_backer, bitfield};
+    
+        register_backer!(I2CRegister, u8, u16);
+    
+        pub struct StatusRegister {
+            register: I2CRegister, // Our new register MUST have a register field
+    
+            /* add other fields here, though not used by bitterly */
+        }
+    
+        impl StatusRegister {
+            register!(StatusRegister, I2CRegister); //
+            bitfield!(por, 1); // Power on reset
+            /*...*/
+            bitfield!(br, 15); // Battery removal
+        }
+    }
+
+    #[test]
+    fn documentation_macro_example_3() {
+        use paste::paste;
+        use bitterly::{register, register_backer, bitfield, bitrange};
+    
+        register_backer!(I2CRegister, u8, u16);
+    
+        pub struct RelaxCfgRegister {
+            register: I2CRegister, // Our new register MUST have a register field
+    
+            /* add other fields here, though not used by bitterly */
+        }
+    
+        impl RelaxCfgRegister {
+            register!(RelaxCfgRegister, I2CRegister); //
+            bitrange!(load, 15, 9, u16); // Load
+            bitrange!(dv, 8, 4, u16); // Delta voltage
+            bitrange!(dt, 3, 0, u16); // Delta time
+        }
+    }
+
 }

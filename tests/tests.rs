@@ -133,7 +133,7 @@ mod tests {
     #[test]
     fn documentation_macro_example_3() {
         use paste::paste;
-        use bitterly::{register, register_backer, bitfield, bitrange};
+        use bitterly::{register, register_backer, bitrange};
     
         register_backer!(I2CRegister, u8, u16);
     

@@ -8,6 +8,14 @@ Why not. I was working with an I2C chip that had an address space of u8 and a re
 
 This is a piece of my first Rust project and thought others in the embedded space might benefit.
 
+## Testing
+This library uses `no_std`. To test on a PC, do the following:
+1. `rustup target list`
+2. Find the target architecture you want to test on. For example, macOS should 
+be x86_64-apple-darwin.
+3. run `cargo test --target x86_64-apple-darwin`. Replace `x86_64-apple-darwin` 
+with your systems triplet.
+
 ## Concepts
 
 ###Backing Registers

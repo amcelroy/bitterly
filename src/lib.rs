@@ -1,295 +1,286 @@
 #![no_std]
 
-pub use paste::paste;
-
 /// # Bitterly
-/// 
+///
 /// Bitterly is a simple, macro based Rust library used to generate a generic `Register` struct
 /// that is made of a user definable address size, and a user definable content type. For example,
 /// when dealing with a max17261 chip, the registers are 8-bit addressible and contain 16-bit
 /// values. A Cortex-M may have addresses of 32-bit with register sizes of 32-bits.
-/// 
-/// In the simplest case with just bits to get / set / clear, use `register_maker!`.
-/// 
-/// The `paste` macro is used to help generate the getters and setters.
-/// 
-/// The macro inputs are:
-/// `reg_name` - Name of the backing registers
-/// `address_type` - The size of the address. 
-/// `reg_type` - The size of the data stored in the register.
-/// 
-/// # Example
+
+/// # Usage
+/// To use Bitterly, simply import the library and use the `register_backer!` macro to generate
+/// a register struct. The macro takes two arguments, the name of the struct to be generated, and
+/// the type of the register contents. The type of the register contents must be a primitive and should ONLY
+/// be the values u8, u16, u32, u64. As of now, this is not enforced by the compiler, but will be in the future.
+/// The macro will generate a struct with the name provided, and a struct called `BitRange` that is used
+/// to define a range of bits within the register. The `BitRange` struct has two fields, `start_bit` and
+/// `stop_bit`.
+///
+/// # Examples
 /// ```
 /// use bitterly::register_backer;
-/// 
+///
 /// pub fn main() {
-///     register_backer!(I2CRegister, u8, u16);
-/// 
-///     let mut status = I2CRegister::new(0, 0);
-/// 
-///     let mut value = status.set_bit(0).set_bit(2).set_bit(4).set_bit(6).contents(); 
-///     assert_eq!(value, 0x55, "Value should be 0x55");
-/// 
-///     value = status.clear_bit(2).clear_bit(4).contents();
-///     assert_eq!(value, 0x41, "Value should be 0x41");
-/// 
-///     value = status.update(0x0FF0).contents();
-///     assert_eq!(value, 0x0FF0, "Value should be 0x0FF0");
-/// 
-///     assert_eq!(status.toggle_bit(0).contents(), 0x0FF1, "Value should be 0xFF1");
-///     assert_eq!(status.is_set(0), true, "Bit 0 is_set should be true");
-///     assert_eq!(status.toggle_bit(0).contents(), 0x0FF0, "Value should be 0xFF0");
-///     assert_eq!(status.is_clear(0), true, "Bit 0 is_clear should be true");
+///     register_backer!(Register, u8);
+///     let mut reg = Register::new(0x00);
+///     reg.set_bit(0);
+///     assert_eq!(reg.contents(), 0x01);
+///     reg.set_bit(1);
+///     assert_eq!(reg.contents(), 0x03);
+///     reg.clear_bit(0);
+///     assert_eq!(reg.contents(), 0x02);
+///     reg.clear_bit(1);
+///     assert_eq!(reg.contents(), 0x00);
+///     reg.set_all();
+///     assert_eq!(reg.contents(), 0xFF);
+///     reg.clear_all();
+///     assert_eq!(reg.contents(), 0x00);
+///     reg.set_bit(0);
+///     
+///     // BitRange
+///     reg = Register::new(0x00);
+///     reg.set_range(BitRange::new(0, 3), 0x0F);
+///     assert_eq!(reg.contents(), 0x0F);
+///     reg.set_range(BitRange::new(4, 7), 0x0F);
+///     assert_eq!(reg.contents(), 0xFF);
+///     reg.clear_range(BitRange::new(0, 3));
+///     assert_eq!(reg.contents(), 0xF0);
+///     reg.clear_range(BitRange::new(4, 7));
+///     assert_eq!(reg.contents(), 0x00);
+///
+///     reg.update(0b00011000);
+///     assert_eq!(reg.contents(), 0x18);
+///     
+///     let mask = reg.mask(BitRange::new(4, 5));
+///     assert_eq!(mask, 0x30);
 /// }
-/// 
-/// ```
+///
 #[macro_export]
 macro_rules! register_backer {
-    ($reg_name:ident, $address_type:ty, $reg_type:ty) => {
+    ($reg_name:ident, $reg_type:ty) => {
+        type RegisterType = $reg_type;
+
         #[derive(Copy, Clone)]
         pub struct $reg_name {
-            address: $address_type,
             contents: $reg_type,
         }
 
-        impl $reg_name {
-            pub fn new(address: $address_type, contents: $reg_type) -> Self {
-                Self {
-                    contents: contents,
-                    address: address,
+        #[derive(Copy, Clone)]
+        pub struct BitRange {
+            start_bit: $reg_type,
+            stop_bit: $reg_type,
+        }
+
+        impl BitRange {
+            pub fn new(start_bit: $reg_type, stop_bit: $reg_type) -> Self {
+                assert!(
+                    start_bit <= stop_bit,
+                    "Start bit must be less than or equal to stop bit"
+                );
+                BitRange {
+                    start_bit,
+                    stop_bit,
                 }
             }
-        
+        }
+
+        impl $reg_name {
+            pub fn new(contents: $reg_type) -> Self {
+                Self { contents: contents }
+            }
+
             pub fn contents(&self) -> $reg_type {
                 self.contents
             }
-        
+
             pub fn set_bit(&mut self, bit: $reg_type) -> &mut Self {
                 self.contents |= 1 << (bit as $reg_type);
                 self
             }
-        
+
             pub fn set_all(&mut self) -> &mut Self {
                 self.contents = <$reg_type>::MAX;
                 self
             }
-        
+
             pub fn clear_bit(&mut self, bit: $reg_type) -> &mut Self {
                 self.contents &= !(1 << (bit as $reg_type));
                 self
             }
-        
+
             pub fn clear_all(&mut self) -> &mut Self {
                 self.contents = 0;
                 self
             }
-        
+
             pub fn toggle_bit(&mut self, bit: $reg_type) -> &mut Self {
                 self.contents ^= 1 << (bit as $reg_type);
                 self
             }
-        
+
             pub fn is_set(&self, bit: $reg_type) -> bool {
                 self.contents & (1 << (bit as $reg_type)) != 0
             }
-        
+
             pub fn is_clear(&self, bit: $reg_type) -> bool {
                 self.contents & (1 << (bit as $reg_type)) == 0
             }
-        
+
             pub fn update(&mut self, new_val: $reg_type) -> &mut Self {
                 self.contents = new_val;
                 self
             }
+
+            pub fn get_range(&self, range: BitRange) -> $reg_type {
+                ((self.contents & self.mask(range)) >> range.start_bit) as $reg_type
+            }
+
+            pub fn mask(&self, br: BitRange) -> $reg_type {
+                (((2 as $reg_type).pow((br.stop_bit + 1 - br.start_bit) as u32) - 1)
+                    << br.start_bit) as $reg_type
+            }
+
+            pub fn clear_range(&mut self, range: BitRange) -> &mut Self {
+                self.contents = self.contents & !self.mask(range);
+                self
+            }
+
+            pub fn set_range(&mut self, range: BitRange, val: $reg_type) -> &mut Self {
+                self.clear_range(range); // Clear bits
+                let masked_val = self.mask(range) & (val << range.start_bit); // Mask input
+                self.contents = self.contents | masked_val;
+                self
+            }
         }
-    }
+    };
 }
 
-/// Generates commonly uses functions to access the backing register.
-/// 
-/// The `register` macro should be used for a register struct created by `register_backer`.
-/// This macro is meant to be used to extend a register struct using `bitfields` and
-/// `bitrange` macros to create easy to use registers with intuitive bit names and 
-/// grouping of bits
-/// 
-/// # Example
-/// ```
-/// use paste::paste;
-/// use bitterly::{register_backer, register, bitfield, bitrange};
-/// 
-/// fn main() {
-///     register_backer!(I2CRegister, u8, u16);
-/// 
-///     pub struct StatusRegister{
-///         register: I2CRegister,
-///         // Other stuff goes here
-///     }
-/// 
-///     impl StatusRegister {
-///         register!(StatusRegister, I2CRegister);
-///         bitfield!(por, 1); // Power on reset - bit 1
-///         bitrange!(example_field, 14, 10, u16);   
-///     }
-/// 
-///     let register_address = 0x00;
-///     let register_init = 0;    
-/// 
-///     let mut status = StatusRegister::new(I2CRegister::new(register_address, register_init));
-/// 
-///     assert_eq!(status.por_set(true).register().contents(), 0x2, "Status register should be 1");
-///     assert_eq!(status.por_get(), true, "Status register bit 1 should be true");
-///     assert_eq!(status.por_set(false).register().contents(), 0x0, "Status register should be 0");
-///     assert_eq!(status.por_get(), false, "Status register bit 1 should be false");
-/// 
-///     assert_eq!(status.por_set(true).example_field_set(0x3).register().contents(), 0xC02, "Example Field should be 3 (bit shifted 10), por bit should be 1 (bit shifted 1)");
-///     assert_eq!(status.example_field_clear().register().contents(), 0x2, "Only the power on reset bit should be true");
-/// }
-/// 
-/// ```
+/// This macro is used to generate a struct that contains a pointer to a register. This is useful
+/// when you have a peripheral that has multiple registers that you want to access. The macro
+/// generates a struct with the name provided, and a function with the name provided that returns
+///
 
 #[macro_export]
 macro_rules! register {
-    ($name:ident, $backing_register:ty) => {
-        pub fn register(&mut self) -> &mut $backing_register {
-            &mut self.register
+    ($struct:ident, $register:ident) => {
+        pub struct $register {
+            register: *mut Register,
         }
 
-        pub fn new(reg: $backing_register) -> $name {
-            $name {
-                register: reg,
+        impl $register {
+            pub fn contents(&self) -> RegisterType {
+                unsafe { (*self.register).contents }
+            }
+
+            pub fn update(&mut self, val: RegisterType) -> &mut Self {
+                unsafe {
+                    (*self.register).contents = val;
+                }
+                self
+            }
+        }
+
+        impl $struct {
+            pub fn $register(&self) -> $register {
+                $register {
+                    register: &self.registers[RegisterId::$register as usize] as *const _
+                        as *mut Register,
+                }
             }
         }
     };
 }
 
-/// Used to create a single named bit.
-/// 
-/// The macro inputs are:
-/// `name` - Identity of the bitfield
-/// `bit` - Bit number. Bit 0 should be 0, Bit 1 should 1, etc.
-/// 
-/// # Example
-/// ```
-/// use paste::paste;
-/// use bitterly::{register_backer, register, bitfield, bitrange};
-/// 
-/// fn main() {
-///     register_backer!(I2CRegister, u8, u16);
-/// 
-///     pub struct StatusRegister{
-///         register: I2CRegister,
-///         // Other stuff goes here
-///     }
-/// 
-///     impl StatusRegister {
-///         register!(StatusRegister, I2CRegister);
-///         bitfield!(por, 1); // Power on reset - bit 1  
-///         bitfield!(bst, 3); // Battery status - Bit 3
-///         bitfield!(br, 15); // Battery Removal - bit 15
-///     }
-/// 
-///     let register_address = 0x00;
-///     let register_init = 0;    
-/// 
-///     let mut status = StatusRegister::new(I2CRegister::new(register_address, register_init));
-/// 
-///     assert_eq!(status.por_set(true).bst_set(true).br_set(true).register().contents(), 0x800A, "Status register should be 1");
-/// }
-/// 
-/// ```
+/// This macro generates a bitfield within a register for a single bit. For example,
+/// if a register contains a bit flag, this could be used to get / set the bit
+/// flag in a named way.
 #[macro_export]
 macro_rules! bitfield {
-    ($name:ident, $bit:expr) => {
+    ($register:ident, $bitfield_name:ident, $bit:literal) => {
         paste! {
-            pub fn [<$name _get>](&self) -> bool {
-                self.register.is_set($bit)
+            pub trait $bitfield_name {
+                fn [<get_ $bitfield_name>](&self) -> bool;
+                fn [<set_ $bitfield_name>](&mut self, value: bool) -> &mut Self;
             }
-        }
 
-        paste! {
-            pub fn [<$name _set>](&mut self, val: bool) -> &mut Self{
-                if val {
-                    self.register.set_bit($bit);
-                } else {
-                    self.register.clear_bit($bit);
+            impl $bitfield_name for $register {
+                fn [<get_ $bitfield_name>](&self) -> bool {
+                    unsafe {
+                        self.register.as_mut().unwrap().is_set($bit)
+                    }
                 }
-        
-                self
+
+                fn [<set_ $bitfield_name>](&mut self, value: bool) -> &mut Self {
+                    unsafe {
+                        if value {
+                            self.register.as_mut().unwrap().set_bit($bit);
+                        } else {
+                            self.register.as_mut().unwrap().clear_bit($bit);
+                        }
+                    }
+
+                    self
+                }
             }
         }
     };
 }
 
-/// Used to create a masked range of named bits.
-/// 
-/// The macro inputs are:
-/// `name` - Name of the bitfield
-/// `end_bit` - Highest bit of the bitfield
-/// `start_bit` - Starting bit of the bitfield
-/// `register type` - This should match the $reg_type of the backing register
-/// 
-/// # Example
-/// ```
-/// use paste::paste;
-/// use bitterly::{register_backer, register, bitfield, bitrange};
-/// 
-/// fn main() {
-///     register_backer!(I2CRegister, u8, u16);
-/// 
-///     pub struct ModelCfgRegister{
-///         register: I2CRegister,
-///         // Other stuff goes here
-///     }
-/// 
-///     impl ModelCfgRegister {
-///         register!(ModelCfgRegister, I2CRegister);
-///         bitfield!(refresh, 15); // Refresh status bit - bit 15  
-///         bitfield!(r100, 13); // Resistor (100k / 10k) - Bit 13
-///         bitfield!(vchg, 10); // Voltage charge - (> 4.2V / <= 4.2V)
-///         bitrange!(modelid, 7, 4, u16); // Model ID - See Max17261 for more info
-///     }
-/// 
-///     let register_address = 0xDB;
-///     let register_init = 0x8400;    
-/// 
-///     let mut modelcfg = ModelCfgRegister::new(I2CRegister::new(register_address, register_init));
-/// 
-///     assert_eq!(modelcfg.refresh_get(), true, "Refresh should be 1");
-///     
-///     assert_eq!(modelcfg.modelid_mask(), 0x00F0, "Model ID mask should be 0x00F0");
-///     assert_eq!(modelcfg.modelid_set(0x2).register().contents(), 0x8420, "ModelCfg register value should be 0x8420");
-///     assert_eq!(modelcfg.modelid_clear().register().contents(), 0x8400, "ModelCfg register value should be 0x8420");
-/// }
-/// 
-/// ```
+/// Generates an enumerated type for a bitrange and should be done BEFORE the
+/// bitrange register is used to ensure the correct types are in place.
+#[macro_export]
+macro_rules! bitrange_enum {
+    ($enum_name:ident, $enum_type:ty, [$(($name:ident, $value:literal)),+]) => {
+        paste! {
+            #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+            pub enum $enum_name {
+                $(
+                    $name = $value,
+                )+
+            }
+
+            pub fn [<$enum_name FromNum>](num: $enum_type) -> Option<$enum_name> {
+                match num {
+                    $(
+                        $value => Some($enum_name::$name),
+                    )+
+                    _ => None,
+                }
+            }
+
+            pub fn [<$enum_name ToNum>](enum_value: $enum_name) -> $enum_type {
+                enum_value as $enum_type
+            }
+        }
+    };
+}
+
+/// Defines a bitrange and the correct getters and setters for the bitrange. The
+///
 #[macro_export]
 macro_rules! bitrange {
-    ($name:ident, $end_bit:expr, $start_bit:expr, $type:ty) => {
+    ($register:ident, $bitrange_name:ident, $msb:literal, $lsb:literal, $val_type:ty) => {
         paste! {
-            pub fn [<$name _get>](&self) -> $type {
-                (self.register.contents() & self.[<$name _mask>]()) >> $start_bit
+            trait $bitrange_name {
+                fn [<get_ $bitrange_name>](&self) -> Option<$val_type>;
+                fn [<set_ $bitrange_name>](&mut self, value: $val_type) -> &mut Self;
             }
-        }
 
-        paste! {
-            pub fn [<$name _mask>](&self) -> $type {
-                (((2 as $type).pow($end_bit + 1 - $start_bit) - 1) << $start_bit) as $type
-            }
-        }
+            impl $bitrange_name for $register {
+                fn [<get_ $bitrange_name>](&self) -> Option<$val_type> {
+                    unsafe {
+                        let val = self.register.as_mut().unwrap().get_range(BitRange {stop_bit: $msb, start_bit: $lsb });
+                        [<$val_type FromNum>](val)
+                    }
+                }
 
-        paste! {
-            pub fn [<$name _clear>](&mut self) -> &mut Self {
-                self.register.update(self.register.contents() & !self.[<$name _mask>]());
-                self
-            }
-        }
+                fn [<set_ $bitrange_name>](&mut self, value: $val_type) -> &mut Self {
+                    unsafe {
+                        self.register.as_mut().unwrap().set_range(BitRange { stop_bit: $msb, start_bit: $lsb }, [<$val_type ToNum>](value));
+                    }
 
-        paste! {
-            pub fn [<$name _set>](&mut self, val: $type) -> &mut Self{
-                self.[<$name _clear>](); // Clear bits
-                let masked_val = self.[<$name _mask>]() & (val << $start_bit); // Mask input
-                self.register.update(self.register.contents() | masked_val);
-                self
+                    self
+                }
             }
         }
     };

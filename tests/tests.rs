@@ -1,154 +1,281 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn test_u32() {
-        use bitterly::register_backer;
+    fn max14748() {
+        use bitterly::{bitfield, bitrange, bitrange_enum, register, register_backer};
+        use paste::paste;
 
-        register_backer!(Register32, u32, u32);
+        register_backer!(Register, u8);
 
-        let mut register = Register32::new(0, 0);
-        register.set_bit(1);
+        const REGISTER_COUNT: usize = 3;
 
-        // number = crate::u32::set(number, u32::Bit32::_1);
-        assert_eq!(register.contents(), 0b00000000_00000000_00000000_0000010);
+        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+        enum RegisterId {
+            ChipId = 0x00,
+            ChipRev = 0x01,
+            DevStatus1 = 0x02,
+            AiclStatus = 0x03,
+        }
 
-        register.clear_bit(1);
+        struct Max14748 {
+            registers: [Register; REGISTER_COUNT],
+        }
 
-        assert_eq!(register.contents(), 0);
+        impl Max14748 {
+            pub fn new() -> Self {
+                Max14748 {
+                    registers: [Register { contents: 0 }; REGISTER_COUNT],
+                }
+            }
+        }
 
-        register.set_bit(0).set_bit(1).set_bit(2).set_bit(3);
+        let max14748 = Max14748::new();
 
-        assert_eq!(register.contents(), 0xF);
+        register!(Max14748, ChipId);
 
-        assert_eq!(Register32::new(0, 1).clear_bit(0).contents(), 0);
+        bitfield!(ChipId, Sysfit, 7);
 
-        assert_eq!(Register32::new(0, 0).set_all().contents(), u32::MAX);
+        bitrange_enum!(
+            AiclStatusEnum,
+            u8,
+            [
+                (Off, 0),
+                (Precheck, 1),
+                (Increment, 2),
+                (Blank, 3),
+                (Idle, 4),
+                (NoConnect, 5)
+            ]
+        );
 
-        assert_eq!(Register32::new(0, 2).set_bit(0).contents(), 3);
+        register!(Max14748, AiclStatus);
+        bitrange!(AiclStatus, Status, 7, 5, AiclStatusEnum);
+        bitrange!(AiclStatus, CurSet, 4, 0, AiclStatusEnum);
 
-        assert_eq!(Register32::new(0, 4).is_set(2), true);
+        // let x = max14748.ChipId().get_Sysfit();
+        // max14748.ChipId().set_Sysfit(true);
+        // let y = max14748.ChipId().get_Sysfit();
 
-        assert_eq!(Register32::new(0, 0).is_clear(0), true);
+        //print!("{}", y);
 
-        assert_eq!(register.is_clear(5), true);
+        // static mut REGISTER: Register = Register { contents: 0 };
 
-        register.toggle_bit(5);
+        // struct test {
+        //     x: *mut Register,
+        // }
 
-        assert_eq!(register.is_set(5), true);
+        // impl test {
+        //     fn new() -> Self {
+        //         test {
+        //             x: unsafe { &mut REGISTER },
+        //         }
+        //     }
+        // }
 
-        register.toggle_bit(5);
+        // let test = test::new();
+        // unsafe {
+        //     test.x.as_mut().unwrap().set_bit(0);
+        //     test.x.as_mut().unwrap().set_bit(1);
+        // }
+        //test.x.set_bit(1);
 
-        assert_eq!(register.is_set(5), false);
-
+        //bitfield!(id, 7, 0,);
     }
 
     #[test]
-    fn test_bitfields() {
-        use paste::paste;
-        use bitterly::{register, register_backer, bitfield, bitrange};
+    fn register_define_test() {
+        use bitterly::{bitfield, register, register_backer};
 
-        register_backer!(Register16, u8, u16);
+        register_backer!(Register, u8);
 
-        pub struct TestRegister {
-            register: Register16,
+        const REGISTER_COUNT: usize = 1;
+
+        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+        enum RegisterId {
+            ChipId = 0x00,
         }
 
-        impl TestRegister {
-            register!(TestRegister, Register16);
-
-            bitfield!(twelve, 12);
-            bitrange!(vempty, 15, 13, u16);
-            bitrange!(middle_byte, 11, 4, u16);
+        pub struct Max14748 {
+            registers: [Register; REGISTER_COUNT],
         }
 
-        let mut test = TestRegister::new(Register16::new(0, 0));
+        impl Max14748 {
+            pub fn new() -> Self {
+                Max14748 {
+                    registers: [Register { contents: 0 }; REGISTER_COUNT],
+                }
+            }
+        }
 
-        assert_eq!(test.vempty_mask(), 0xE000, "Mask for bits 15, 14, 13 should be 0xE000");
+        let mut max14748 = Max14748::new();
 
-        assert_eq!(test.middle_byte_mask(), 0x0FF0, "Mask for bits 11..4 should be 0x00FF");
+        register!(Max14748, ChipId);
 
-        test.register().update(0xE000);
-        assert_eq!(test.vempty_get(), 0x7, "VEmpty should be 0x7");
+        let id = max14748.ChipId().contents();
+        assert_eq!(id, 0);
 
-        test.vempty_clear();
-        assert_eq!(test.register().contents(), 0, "Test register should be 0");
-        assert_eq!(test.vempty_get(), 0, "VEmpty should be 0");
+        // Set contents of register
+        max14748.ChipId().update(8);
 
-        test.register().set_all();
-        assert_eq!(test.register().contents(), 0xFFFF, "All bits should be set");
-        assert_eq!(test.vempty_clear().register().contents(), 0x1FFF, "Test should be ");
-        
-        assert_eq!(test.register().clear_all().contents(), 0, "Test register shoudl be 0");
-        
-        test.vempty_set(0x3);
-        assert_eq!(test.register().contents(), 0x6000, "Test register should be 0");
-        assert_eq!(test.vempty_get(), 0x3, "VEmpty should be 3");
-
-        assert_eq!(test.twelve_get(), false, "Bit 12 should be 0 (false)");
-        test.twelve_set(true);
-        assert_eq!(test.twelve_get(), true, "Bit 12 should be 1 (true)");
-
-        test.register().update(0xFFFF);
-        assert_eq!(test.register().contents(), 0xFFFF, "Test register value should be 0xFFFF");
-
-        assert_eq!(test.vempty_get(), 0x7, "VEmpty should be 0x7");
-        assert_eq!(test.middle_byte_get(), 0xFF, "Middle Byte should be 0xFF");
-        assert_eq!(test.twelve_get(), true, "Bit Twelve should be true");
-
-        test.register().update(0x0);
-
-        assert_eq!(test.twelve_set(true).vempty_set(0x3).register().contents(), 0x7000, "Example Field should be 3, por bit should be 1");
-
+        let id = max14748.ChipId().contents();
+        assert_eq!(id, 8);
     }
 
     #[test]
-    fn documentation_macro_example() {
+    pub fn bitfield_test() {
+        use bitterly::{bitfield, register, register_backer};
         use paste::paste;
-        use bitterly::{register, register_backer, bitfield, bitrange};
 
-        register_backer!(I2CRegister, u8, u16);
+        register_backer!(Register, u8);
+
+        const REGISTER_COUNT: usize = 4;
+
+        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+        enum RegisterId {
+            ChipId = 0x00,
+            ChipRev = 0x01,
+            DevStatus1 = 0x02,
+            AiclStatus = 0x03,
+        }
+
+        struct Max14748 {
+            registers: [Register; REGISTER_COUNT],
+        }
+
+        impl Max14748 {
+            pub fn new() -> Self {
+                Max14748 {
+                    registers: [Register { contents: 0 }; REGISTER_COUNT],
+                }
+            }
+        }
+
+        let max14748 = Max14748::new();
+
+        register!(Max14748, ChipId);
+        register!(Max14748, ChipRev);
+
+        register!(Max14748, DevStatus1);
+        bitfield!(DevStatus1, SysFit, 7);
+        bitfield!(DevStatus1, ChgInOvp, 6);
+        bitfield!(DevStatus1, ILim, 5);
+        bitfield!(DevStatus1, VSysReg, 4);
+        bitfield!(DevStatus1, ThrmSd150, 3);
+        bitfield!(DevStatus1, ThrmSd120, 2);
+        bitfield!(DevStatus1, BatDet, 1);
+        bitfield!(DevStatus1, WbChg, 0);
+
+        register!(Max14748, AiclStatus);
+
+        let mut batdet = max14748.DevStatus1().get_BatDet();
+        assert_eq!(batdet, false);
+        max14748.DevStatus1().set_BatDet(true);
+        batdet = max14748.DevStatus1().get_BatDet();
+        assert_eq!(batdet, true);
     }
 
     #[test]
-    fn documentation_macro_example_2() {
+    pub fn bitrange_enum_test() {
+        use bitterly::{bitfield, register, register_backer};
         use paste::paste;
-        use bitterly::{register, register_backer, bitfield};
-    
-        register_backer!(I2CRegister, u8, u16);
-    
-        pub struct StatusRegister {
-            register: I2CRegister, // Our new register MUST have a register field
-    
-            /* add other fields here, though not used by bitterly */
+
+        register_backer!(Register, u8);
+
+        const REGISTER_COUNT: usize = 4;
+
+        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+        enum RegisterId {
+            ChipId = 0x00,
+            ChipRev = 0x01,
+            DevStatus1 = 0x02,
+            AiclStatus = 0x03,
         }
-    
-        impl StatusRegister {
-            register!(StatusRegister, I2CRegister); //
-            bitfield!(por, 1); // Power on reset
-            /*...*/
-            bitfield!(br, 15); // Battery removal
+
+        struct Max14748 {
+            registers: [Register; REGISTER_COUNT],
         }
+
+        impl Max14748 {
+            pub fn new() -> Self {
+                Max14748 {
+                    registers: [Register { contents: 0 }; REGISTER_COUNT],
+                }
+            }
+        }
+
+        let max14748 = Max14748::new();
+
+        register!(Max14748, AiclStatus);
     }
 
     #[test]
-    fn documentation_macro_example_3() {
+    pub fn bitrange_test() {
+        use bitterly::{bitfield, bitrange, bitrange_enum, register, register_backer};
         use paste::paste;
-        use bitterly::{register, register_backer, bitrange};
-    
-        register_backer!(I2CRegister, u8, u16);
-    
-        pub struct RelaxCfgRegister {
-            register: I2CRegister, // Our new register MUST have a register field
-    
-            /* add other fields here, though not used by bitterly */
+
+        register_backer!(Register, u8);
+
+        const REGISTER_COUNT: usize = 4;
+
+        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+        enum RegisterId {
+            ChipId = 0x00,
+            ChipRev = 0x01,
+            DevStatus1 = 0x02,
+            AiclStatus = 0x03,
         }
-    
-        impl RelaxCfgRegister {
-            register!(RelaxCfgRegister, I2CRegister); //
-            bitrange!(load, 15, 9, u16); // Load
-            bitrange!(dv, 8, 4, u16); // Delta voltage
-            bitrange!(dt, 3, 0, u16); // Delta time
+
+        struct Max14748 {
+            registers: [Register; REGISTER_COUNT],
+        }
+
+        impl Max14748 {
+            pub fn new() -> Self {
+                Max14748 {
+                    registers: [Register { contents: 0 }; REGISTER_COUNT],
+                }
+            }
+        }
+
+        let max14748 = Max14748::new();
+
+        register!(Max14748, AiclStatus);
+
+        bitrange_enum!(
+            AiclStatusEnum,
+            u8,
+            [
+                (Off, 0),
+                (Precheck, 1),
+                (Increment, 2),
+                (Blank, 3),
+                (Idle, 4),
+                (NoConnect, 5)
+            ]
+        );
+
+        assert_eq!(AiclStatusEnum::Off as u8, 0);
+        assert_eq!(AiclStatusEnum::Precheck as u8, 1);
+        assert_eq!(AiclStatusEnum::Increment as u8, 2);
+        assert_eq!(AiclStatusEnum::Blank as u8, 3);
+        assert_eq!(AiclStatusEnum::Idle as u8, 4);
+        assert_eq!(AiclStatusEnum::NoConnect as u8, 5);
+
+        assert_eq!(AiclStatusEnumToNum(AiclStatusEnum::Off), 0);
+        assert_eq!(AiclStatusEnumToNum(AiclStatusEnum::Precheck), 1);
+        assert_eq!(AiclStatusEnumToNum(AiclStatusEnum::Increment), 2);
+        assert_eq!(AiclStatusEnumToNum(AiclStatusEnum::Blank), 3);
+        assert_eq!(AiclStatusEnumToNum(AiclStatusEnum::Idle), 4);
+        assert_eq!(AiclStatusEnumToNum(AiclStatusEnum::NoConnect), 5);
+
+        assert_eq!(AiclStatusEnumFromNum(0).unwrap(), AiclStatusEnum::Off);
+        assert_eq!(AiclStatusEnumFromNum(1).unwrap(), AiclStatusEnum::Precheck);
+        assert_eq!(AiclStatusEnumFromNum(2).unwrap(), AiclStatusEnum::Increment);
+        assert_eq!(AiclStatusEnumFromNum(3).unwrap(), AiclStatusEnum::Blank);
+        assert_eq!(AiclStatusEnumFromNum(4).unwrap(), AiclStatusEnum::Idle);
+        assert_eq!(AiclStatusEnumFromNum(5).unwrap(), AiclStatusEnum::NoConnect);
+        for i in 6..=255 {
+            assert_eq!(AiclStatusEnumFromNum(i).is_none(), true);
         }
     }
-
 }

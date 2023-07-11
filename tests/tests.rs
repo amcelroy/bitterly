@@ -1,115 +1,80 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    fn max14748() {
-        use bitterly::{bitfield, bitrange, bitrange_enum, register, register_backer};
+    fn register_test() {
+        use bitterly::{bitfield, bitrange, bitrange_enum, peripheral, register, register_backer};
         use paste::paste;
 
         register_backer!(Register, u8);
 
-        const REGISTER_COUNT: usize = 3;
-
-        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-        enum RegisterId {
-            ChipId = 0x00,
-            ChipRev = 0x01,
-            DevStatus1 = 0x02,
-            AiclStatus = 0x03,
+        for i in 0..8 {
+            let mut reg = Register::new(0x00);
+            reg.set_bit(i);
+            assert_eq!(reg.contents(), 1 << i);
+            assert_eq!(reg.is_set(i), true);
+            reg.clear_bit(i);
+            assert_eq!(reg.contents(), 0x00);
+            assert_eq!(reg.is_clear(i), true);
         }
 
-        struct Max14748 {
-            registers: [Register; REGISTER_COUNT],
-        }
+        let mut reg = Register::new(0x00);
+        reg.set_bit(0);
+        assert_eq!(reg.contents(), 0x01);
+        reg.set_bit(1);
+        assert_eq!(reg.contents(), 0x03);
+        reg.clear_bit(0);
+        assert_eq!(reg.contents(), 0x02);
+        reg.clear_bit(1);
+        assert_eq!(reg.contents(), 0x00);
+        reg.set_all();
+        assert_eq!(reg.contents(), 0xFF);
+        reg.clear_all();
+        assert_eq!(reg.contents(), 0x00);
 
-        impl Max14748 {
-            pub fn new() -> Self {
-                Max14748 {
-                    registers: [Register { contents: 0 }; REGISTER_COUNT],
-                }
-            }
-        }
+        reg.set_bit(7);
+        assert_eq!(reg.contents(), 0x80);
+        reg.toggle_bit(7);
+        assert_eq!(reg.contents(), 0x00);
 
-        let max14748 = Max14748::new();
+        // BitRange
+        reg = Register::new(0x00);
+        reg.set_range(BitRange::new(0, 3), 0x0F);
+        assert_eq!(reg.contents(), 0x0F);
+        reg.set_range(BitRange::new(4, 7), 0x0F);
+        assert_eq!(reg.contents(), 0xFF);
+        reg.clear_range(BitRange::new(0, 3));
+        assert_eq!(reg.contents(), 0xF0);
+        reg.clear_range(BitRange::new(4, 7));
+        assert_eq!(reg.contents(), 0x00);
 
-        register!(Max14748, ChipId);
+        reg.update(0b00011000);
+        assert_eq!(reg.contents(), 0x18);
 
-        bitfield!(ChipId, Sysfit, 7);
-
-        bitrange_enum!(
-            AiclStatusEnum,
-            u8,
-            [
-                (Off, 0),
-                (Precheck, 1),
-                (Increment, 2),
-                (Blank, 3),
-                (Idle, 4),
-                (NoConnect, 5)
-            ]
-        );
-
-        register!(Max14748, AiclStatus);
-        bitrange!(AiclStatus, Status, 7, 5, AiclStatusEnum);
-        bitrange!(AiclStatus, CurSet, 4, 0, AiclStatusEnum);
-
-        // let x = max14748.ChipId().get_Sysfit();
-        // max14748.ChipId().set_Sysfit(true);
-        // let y = max14748.ChipId().get_Sysfit();
-
-        //print!("{}", y);
-
-        // static mut REGISTER: Register = Register { contents: 0 };
-
-        // struct test {
-        //     x: *mut Register,
-        // }
-
-        // impl test {
-        //     fn new() -> Self {
-        //         test {
-        //             x: unsafe { &mut REGISTER },
-        //         }
-        //     }
-        // }
-
-        // let test = test::new();
-        // unsafe {
-        //     test.x.as_mut().unwrap().set_bit(0);
-        //     test.x.as_mut().unwrap().set_bit(1);
-        // }
-        //test.x.set_bit(1);
-
-        //bitfield!(id, 7, 0,);
+        let mask = reg.mask(BitRange::new(4, 5));
+        assert_eq!(mask, 0x30);
     }
 
     #[test]
     fn register_define_test() {
-        use bitterly::{bitfield, register, register_backer};
+        use bitterly::{bitfield, peripheral, register, register_backer};
 
         register_backer!(Register, u8);
 
-        const REGISTER_COUNT: usize = 1;
+        peripheral!(
+            Max14748,
+            5,
+            [
+                (ChipId, 0x00),
+                (ChipRev, 0x01),
+                (DevStatus1, 0x02),
+                (AiclStatus, 0x03),
+                (DevStatus2, 0x04)
+            ]
+        );
 
-        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-        enum RegisterId {
-            ChipId = 0x00,
-        }
-
-        pub struct Max14748 {
-            registers: [Register; REGISTER_COUNT],
-        }
-
-        impl Max14748 {
-            pub fn new() -> Self {
-                Max14748 {
-                    registers: [Register { contents: 0 }; REGISTER_COUNT],
-                }
-            }
-        }
+        register!(ChipId);
 
         let mut max14748 = Max14748::new();
-
-        register!(Max14748, ChipId);
 
         let id = max14748.ChipId().contents();
         assert_eq!(id, 0);
@@ -123,39 +88,29 @@ mod tests {
 
     #[test]
     pub fn bitfield_test() {
-        use bitterly::{bitfield, register, register_backer};
+        use bitterly::{bitfield, peripheral, register, register_backer};
         use paste::paste;
 
         register_backer!(Register, u8);
 
-        const REGISTER_COUNT: usize = 4;
-
-        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-        enum RegisterId {
-            ChipId = 0x00,
-            ChipRev = 0x01,
-            DevStatus1 = 0x02,
-            AiclStatus = 0x03,
-        }
-
-        struct Max14748 {
-            registers: [Register; REGISTER_COUNT],
-        }
-
-        impl Max14748 {
-            pub fn new() -> Self {
-                Max14748 {
-                    registers: [Register { contents: 0 }; REGISTER_COUNT],
-                }
-            }
-        }
+        peripheral!(
+            Max14748,
+            5,
+            [
+                (ChipId, 0x00),
+                (ChipRev, 0x01),
+                (DevStatus1, 0x02),
+                (AiclStatus, 0x03),
+                (DevStatus2, 0x04)
+            ]
+        );
 
         let max14748 = Max14748::new();
 
-        register!(Max14748, ChipId);
-        register!(Max14748, ChipRev);
+        register!(ChipId);
+        register!(ChipRev);
 
-        register!(Max14748, DevStatus1);
+        register!(DevStatus1);
         bitfield!(DevStatus1, SysFit, 7);
         bitfield!(DevStatus1, ChgInOvp, 6);
         bitfield!(DevStatus1, ILim, 5);
@@ -165,7 +120,7 @@ mod tests {
         bitfield!(DevStatus1, BatDet, 1);
         bitfield!(DevStatus1, WbChg, 0);
 
-        register!(Max14748, AiclStatus);
+        register!(AiclStatus);
 
         let mut batdet = max14748.DevStatus1().get_BatDet();
         assert_eq!(batdet, false);
@@ -176,70 +131,48 @@ mod tests {
 
     #[test]
     pub fn bitrange_enum_test() {
-        use bitterly::{bitfield, register, register_backer};
+        use bitterly::{bitfield, peripheral, register, register_backer};
         use paste::paste;
 
         register_backer!(Register, u8);
 
-        const REGISTER_COUNT: usize = 4;
+        peripheral!(
+            Max14748,
+            5,
+            [
+                (ChipId, 0x00),
+                (ChipRev, 0x01),
+                (DevStatus1, 0x02),
+                (AiclStatus, 0x03),
+                (DevStatus2, 0x04)
+            ]
+        );
 
-        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-        enum RegisterId {
-            ChipId = 0x00,
-            ChipRev = 0x01,
-            DevStatus1 = 0x02,
-            AiclStatus = 0x03,
-        }
-
-        struct Max14748 {
-            registers: [Register; REGISTER_COUNT],
-        }
-
-        impl Max14748 {
-            pub fn new() -> Self {
-                Max14748 {
-                    registers: [Register { contents: 0 }; REGISTER_COUNT],
-                }
-            }
-        }
-
-        let max14748 = Max14748::new();
-
-        register!(Max14748, AiclStatus);
+        register!(AiclStatus);
     }
 
     #[test]
     pub fn bitrange_test() {
-        use bitterly::{bitfield, bitrange, bitrange_enum, register, register_backer};
+        use bitterly::{bitfield, bitrange, bitrange_enum, peripheral, register, register_backer};
         use paste::paste;
 
         register_backer!(Register, u8);
 
-        const REGISTER_COUNT: usize = 4;
-
-        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-        enum RegisterId {
-            ChipId = 0x00,
-            ChipRev = 0x01,
-            DevStatus1 = 0x02,
-            AiclStatus = 0x03,
-        }
-
-        struct Max14748 {
-            registers: [Register; REGISTER_COUNT],
-        }
-
-        impl Max14748 {
-            pub fn new() -> Self {
-                Max14748 {
-                    registers: [Register { contents: 0 }; REGISTER_COUNT],
-                }
-            }
-        }
+        peripheral!(
+            Max14748,
+            5,
+            [
+                (ChipId, 0x00),
+                (ChipRev, 0x01),
+                (DevStatus1, 0x02),
+                (AiclStatus, 0x03),
+                (DevStatus2, 0x04)
+            ]
+        );
 
         let max14748 = Max14748::new();
 
-        register!(Max14748, AiclStatus);
+        register!(AiclStatus);
 
         bitrange_enum!(
             AiclStatusEnum,

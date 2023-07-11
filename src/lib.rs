@@ -15,50 +15,12 @@
 /// The macro will generate a struct with the name provided, and a struct called `BitRange` that is used
 /// to define a range of bits within the register. The `BitRange` struct has two fields, `start_bit` and
 /// `stop_bit`.
-///
-/// # Examples
-/// ```
-/// use bitterly::register_backer;
-///
-/// pub fn main() {
-///     register_backer!(Register, u8);
-///     let mut reg = Register::new(0x00);
-///     reg.set_bit(0);
-///     assert_eq!(reg.contents(), 0x01);
-///     reg.set_bit(1);
-///     assert_eq!(reg.contents(), 0x03);
-///     reg.clear_bit(0);
-///     assert_eq!(reg.contents(), 0x02);
-///     reg.clear_bit(1);
-///     assert_eq!(reg.contents(), 0x00);
-///     reg.set_all();
-///     assert_eq!(reg.contents(), 0xFF);
-///     reg.clear_all();
-///     assert_eq!(reg.contents(), 0x00);
-///     reg.set_bit(0);
-///     
-///     // BitRange
-///     reg = Register::new(0x00);
-///     reg.set_range(BitRange::new(0, 3), 0x0F);
-///     assert_eq!(reg.contents(), 0x0F);
-///     reg.set_range(BitRange::new(4, 7), 0x0F);
-///     assert_eq!(reg.contents(), 0xFF);
-///     reg.clear_range(BitRange::new(0, 3));
-///     assert_eq!(reg.contents(), 0xF0);
-///     reg.clear_range(BitRange::new(4, 7));
-///     assert_eq!(reg.contents(), 0x00);
-///
-///     reg.update(0b00011000);
-///     assert_eq!(reg.contents(), 0x18);
-///     
-///     let mask = reg.mask(BitRange::new(4, 5));
-///     assert_eq!(mask, 0x30);
-/// }
-///
 #[macro_export]
 macro_rules! register_backer {
     ($reg_name:ident, $reg_type:ty) => {
         type RegisterType = $reg_type;
+
+        type RegisterBacker = $reg_name;
 
         #[derive(Copy, Clone)]
         pub struct $reg_name {
@@ -158,11 +120,43 @@ macro_rules! register_backer {
 /// This macro is used to generate a struct that contains a pointer to a register. This is useful
 /// when you have a peripheral that has multiple registers that you want to access. The macro
 /// generates a struct with the name provided, and a function with the name provided that returns
-///
+/// a pointer to the register. The pointer is mutable so that the register can be updated.
+/// The macro takes three arguments, the name of the struct to be generated, the name of the
+/// function that returns the pointer, and the address of the register.
+#[macro_export]
+macro_rules! peripheral {
+    //($enum_name:ident, $enum_type:ty, [$(($name:ident, $value:literal)),+]) => {
 
+    ($peripheral_name:ident, $count:literal, [$(($register:ident, $addr:literal)),+]) => {
+        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+        pub enum RegisterId {
+            $(
+                $register = $addr,
+            )+
+        }
+
+        pub struct $peripheral_name {
+            registers: [RegisterBacker; $count],
+        }
+
+        impl $peripheral_name {
+            pub fn new() -> Self {
+                $peripheral_name {
+                    registers: [RegisterBacker { contents: 0 }; $count],
+                }
+            }
+        }
+
+        type PeripheralType = $peripheral_name;
+    };
+}
+
+/// This macro is used to generate a struct that contains a pointer to a register. This is useful
+/// when you have a peripheral that has multiple registers that you want to access. The macro
+/// generates a struct with the name provided, and a function with the name provided that returns
 #[macro_export]
 macro_rules! register {
-    ($struct:ident, $register:ident) => {
+    ($register:ident) => {
         pub struct $register {
             register: *mut Register,
         }
@@ -180,7 +174,7 @@ macro_rules! register {
             }
         }
 
-        impl $struct {
+        impl PeripheralType {
             pub fn $register(&self) -> $register {
                 $register {
                     register: &self.registers[RegisterId::$register as usize] as *const _

@@ -172,6 +172,13 @@ macro_rules! register {
                 }
                 self
             }
+
+            pub fn clear_all(&mut self) -> &mut Self {
+                unsafe {
+                    (*self.register).clear_all();
+                }
+                self
+            }
         }
 
         impl PeripheralType {

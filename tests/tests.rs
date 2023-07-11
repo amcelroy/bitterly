@@ -127,6 +127,14 @@ mod tests {
         max14748.DevStatus1().set_BatDet(true);
         batdet = max14748.DevStatus1().get_BatDet();
         assert_eq!(batdet, true);
+
+        max14748
+            .DevStatus1()
+            .clear_all()
+            .set_BatDet(true)
+            .set_ThrmSd120(true);
+        let contents = max14748.DevStatus1().contents();
+        assert_eq!(contents, 0b00000110);
     }
 
     #[test]

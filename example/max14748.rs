@@ -50,4 +50,5 @@ pub fn main() {
     bitrange!(AiclStatus, CurSet, 4, 0, AiclStatusEnum);
 
     let max14748 = Max14748::new();
+    max14748.DevStatus1().set();
 }

@@ -7,6 +7,11 @@
 /// when dealing with a max17261 chip, the registers are 8-bit addressible and contain 16-bit
 /// values. A Cortex-M may have addresses of 32-bit with register sizes of 32-bits.
 
+pub trait I2C {
+    fn to_i2c(&self, buffer: &mut [u8]) -> u8;
+    fn from_i2c(&self, buffer: &[u8]) -> u8;
+}
+
 /// # Usage
 /// To use Bitterly, simply import the library and use the `register_backer!` macro to generate
 /// a register struct. The macro takes two arguments, the name of the struct to be generated, and
@@ -98,8 +103,12 @@ macro_rules! register_backer {
             }
 
             pub fn mask(&self, br: BitRange) -> $reg_type {
-                (((2 as $reg_type).pow((br.stop_bit + 1 - br.start_bit) as u32) - 1)
-                    << br.start_bit) as $reg_type
+                let exp = (2 as $reg_type).overflowing_pow((br.stop_bit + 1 - br.start_bit) as u32);
+                if exp.1 == true {
+                    <$reg_type>::MAX << br.start_bit
+                } else {
+                    (exp.0 - 1) << br.start_bit
+                }
             }
 
             pub fn clear_range(&mut self, range: BitRange) -> &mut Self {
@@ -230,7 +239,7 @@ macro_rules! bitfield {
 /// Generates an enumerated type for a bitrange and should be done BEFORE the
 /// bitrange register is used to ensure the correct types are in place.
 #[macro_export]
-macro_rules! bitrange_enum {
+macro_rules! bitrange_enum_values {
     ($enum_name:ident, $enum_type:ty, [$(($name:ident, $value:literal)),+]) => {
         paste! {
             #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -278,6 +287,36 @@ macro_rules! bitrange {
                 fn [<set_ $bitrange_name>](&mut self, value: $val_type) -> &mut Self {
                     unsafe {
                         self.register.as_mut().unwrap().set_range(BitRange { stop_bit: $msb, start_bit: $lsb }, [<$val_type ToNum>](value));
+                    }
+
+                    self
+                }
+            }
+        }
+    };
+}
+
+/// Defines a bitrange and the correct getters and setters for the bitrange. The
+///
+#[macro_export]
+macro_rules! bitrange_raw {
+    ($register:ident, $bitrange_name:ident, $msb:literal, $lsb:literal, $val_type:ty) => {
+        paste! {
+            trait $bitrange_name {
+                fn [<get_ $bitrange_name>](&self) -> $val_type;
+                fn [<set_ $bitrange_name>](&mut self, value: $val_type) -> &mut Self;
+            }
+
+            impl $bitrange_name for $register {
+                fn [<get_ $bitrange_name>](&self) -> $val_type {
+                    unsafe {
+                        self.register.as_mut().unwrap().get_range(BitRange {stop_bit: $msb, start_bit: $lsb })
+                    }
+                }
+
+                fn [<set_ $bitrange_name>](&mut self, value: $val_type) -> &mut Self {
+                    unsafe {
+                        self.register.as_mut().unwrap().set_range(BitRange { stop_bit: $msb, start_bit: $lsb }, value);
                     }
 
                     self

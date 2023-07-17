@@ -2,24 +2,23 @@
 
 /// # Bitterly
 ///
-/// Bitterly is a simple, macro based Rust library used to generate a generic `Register` struct
-/// that is made of a user definable address size, and a user definable content type. For example,
-/// when dealing with a max17261 chip, the registers are 8-bit addressible and contain 16-bit
-/// values. A Cortex-M may have addresses of 32-bit with register sizes of 32-bits.
+/// Bitterly is a simple, macro based Rust library used to generate a peripheral
+/// and is intented to be used with embedded systems that interface to devices
+/// on a bus such as I2C or SPI where results can be cache and stored in RAM.
+///
+/// It can be useful to read multiple registers, interact with the data, and
+/// then write or transmit the results back to the peripheral or another device
+/// (host pc?). This library provides an easy way to interact with the registers
+/// of a peripheral.
 
 pub trait I2C {
     fn to_i2c(&self, buffer: &mut [u8]) -> u8;
     fn from_i2c(&self, buffer: &[u8]) -> u8;
 }
 
-/// # Usage
-/// To use Bitterly, simply import the library and use the `register_backer!` macro to generate
-/// a register struct. The macro takes two arguments, the name of the struct to be generated, and
-/// the type of the register contents. The type of the register contents must be a primitive and should ONLY
-/// be the values u8, u16, u32, u64. As of now, this is not enforced by the compiler, but will be in the future.
-/// The macro will generate a struct with the name provided, and a struct called `BitRange` that is used
-/// to define a range of bits within the register. The `BitRange` struct has two fields, `start_bit` and
-/// `stop_bit`.
+/// The register_backer! macro is used to generate a RegisterBacker struct that is used
+/// by subsequent macros, such as peripheral!. The generated struct has accessors
+/// to get / set / toggle / clear bits, as well as get a range of bits.
 #[macro_export]
 macro_rules! register_backer {
     ($reg_name:ident, $reg_type:ty) => {
@@ -126,12 +125,14 @@ macro_rules! register_backer {
     };
 }
 
-/// This macro is used to generate a struct that contains a pointer to a register. This is useful
-/// when you have a peripheral that has multiple registers that you want to access. The macro
-/// generates a struct with the name provided, and a function with the name provided that returns
-/// a pointer to the register. The pointer is mutable so that the register can be updated.
-/// The macro takes three arguments, the name of the struct to be generated, the name of the
-/// function that returns the pointer, and the address of the register.
+/// This macro is used to generate a struct called a peripheral that allocates
+/// a number of registers that can be pointed to using the subsequent macros. The
+/// macro takes three arguments, the name of the peripheral, the number of registers
+/// that the peripheral has, and a list of tuples that contain the name of the register.
+///
+/// Note, the number of registers should be >= the number of registers in the list of tuples.
+/// or there will be a panic at runtime if you try to access a register that is outside of
+/// the range of the number of registers.
 #[macro_export]
 macro_rules! peripheral {
     //($enum_name:ident, $enum_type:ty, [$(($name:ident, $value:literal)),+]) => {
@@ -162,7 +163,10 @@ macro_rules! peripheral {
 
 /// This macro is used to generate a struct that contains a pointer to a register. This is useful
 /// when you have a peripheral that has multiple registers that you want to access. The macro
-/// generates a struct with the name provided, and a function with the name provided that returns
+/// generates a struct with the name provided, and a function with the name provided that returns.
+///
+/// This function requires that a peripheral has been created using the
+/// peripheral! macro so that that pointers to the backing memory can be used.
 #[macro_export]
 macro_rules! register {
     ($register:ident) => {
@@ -237,7 +241,8 @@ macro_rules! bitfield {
 }
 
 /// Generates an enumerated type for a bitrange and should be done BEFORE the
-/// bitrange register is used to ensure the correct types are in place.
+/// bitrange register is used to ensure the correct types are in place. This macro
+/// also takes care of converting the enum to a number and vice versa.
 #[macro_export]
 macro_rules! bitrange_enum_values {
     ($enum_name:ident, $enum_type:ty, [$(($name:ident, $value:literal)),+]) => {
@@ -265,8 +270,10 @@ macro_rules! bitrange_enum_values {
     };
 }
 
-/// Defines a bitrange and the correct getters and setters for the bitrange. The
-///
+/// Defines a bitrange and the correct getters and setters for the bitrange using
+/// an enum defined using the bitrange_enum_values macro. This helps enforce
+/// only valid enum can be used for the getters and setters. If a register
+/// doesn't have an enum that is easily mappable, consider bitrange_raw instead.
 #[macro_export]
 macro_rules! bitrange {
     ($register:ident, $bitrange_name:ident, $msb:literal, $lsb:literal, $val_type:ty) => {
@@ -296,8 +303,9 @@ macro_rules! bitrange {
     };
 }
 
-/// Defines a bitrange and the correct getters and setters for the bitrange. The
-///
+/// Defines a bitrange and the correct getters and setters for the bitrange using
+/// a raw type, such as u8, u16, u32, etc. This can be used for registers like
+/// ID and Revision that don't map to an enum but occupy a bitrange.
 #[macro_export]
 macro_rules! bitrange_raw {
     ($register:ident, $bitrange_name:ident, $msb:literal, $lsb:literal, $val_type:ty) => {

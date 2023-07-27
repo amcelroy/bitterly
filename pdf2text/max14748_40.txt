@@ -1,0 +1,42 @@
+Table 14. CCStatus2 Register (0x0A)Table 13. CCStatus1 Register (0x09)
+ADDRESS: 0x09
+MODE: Read Only
+BIT 7 6 5 4 3 2 1 0
+NAME CCPinStat[1:0] CCIStat CCVcnStat CCStat[2:0]
+CCPinStat[1:0]Status of Active CC Pin  
+00 = No Determination  
+01 = CC1 Active  
+10 = CC2 Active  
+11 = RFU
+CCIStatCC Pin Detected Allowed VBUS Current in UFP mode  
+00 = Not in UFP mode  
+01 = 500mA  
+10 = 1.5A  
+11 = 3.0A
+CCVcnStatStatus of VCONN Output  
+0 = VCONN Disabled  
+1 = VCONN Enabled
+CCStat[2:0]Output of CC Pin Detection State Machine  
+000 = No Connection  
+001 = UFP  
+010 = DFP  
+011 = Audio Accessory  
+100 = Debug Accessory  
+101 = Error  
+110 = Disabled  
+111 = RFU
+ADDRESS: 0x0A
+MODE: Read Only
+BIT 7 6 5 4 3 2 1 0
+NAME - - - - VSAFE0V DetAbrt - -
+VSAFE0VStatus of VBUS Detection. (Valid only in Attached.SRC_CCx, Attached.SNK_CCx state)
+0 = V CHGIN  < VSAFE0V  
+1 = V CHGIN  > VSAFE0V
+DetAbrtCharger Detection Abort
+0 = Charger Detection runs if ChgDetEn = 1 and VBUS is valid for the debounce time  
+1 = Charger Detection is aborted by Type-C State Machine. Charger detection will run if ChgDetEn = 1 and 
+VBUS is valid for the debounce time. ChgDetMan bit allows manual run of charger detection. If Charger 
+Detection is in progress, DetAbrt = 1 immediately stops the in-progress detection.
+MAX14748 USB Type-C Charger
+www.maximintegrated.com
+Maxim Integrated  │ 41

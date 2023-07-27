@@ -1,0 +1,26 @@
+Table 21. CCInt Register (0x11)
+ADDRESS: 0x11
+MODE: Clear On Read
+BIT 7 6 5 4 3 2 1 0
+NAME - VSAFE0VI DetAbrtI - CCPinStatI CCIStatI CCVcnStatI CCStatI
+VSAFE0VIVSAFE0V status change interrupt. 
+0 = Status of VSAFE0V has NOT changed since the last time VSAFE0VI was read  
+1 = Status of VSAFE0V has changed since the last time VSAFE0VI was read
+DetAbrtIDetAbrt status change interrupt. 
+0 = Status of DetAbrt has NOT changed since the last time DetAbrtI was read  
+1 = Status of DetAbrt has changed since the last time DetAbrtI was read
+CCPinStatICCPinStat status change interrupt. 
+0 = Status of CCPinStat has NOT changed since the last time CCPinStatI was read  
+1 = Status of CCPinStat has changed since the last time CCPinStatI was read
+CCIStatICCIStat status change interrupt. 
+0 = Status of CCIStat has NOT changed since the last time CCIStatI was read  
+1 = Status of CCIStat has changed since the last time CCIStatI was read
+CCVcnStatICCVcnStat status change interrupt. 
+0 = Status of CCVcnStat has NOT changed since the last time CCVcnStatI was read  
+1 = Status of CCVcnStat has changed since the last time CCVcnStatI was read
+CCStatICCStat status change interrupt. 
+0 = Status of CCStat has NOT changed since the last time CCStatI was read  
+1 = Status of CCStat has changed since the last time CCStatI was read
+MAX14748 USB Type-C Charger
+www.maximintegrated.com
+Maxim Integrated  │ 45

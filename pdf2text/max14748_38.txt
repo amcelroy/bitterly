@@ -1,0 +1,44 @@
+Table 10. JEITAStatus Register (0x06)Table 9. ChgStatus Register (0x05)
+ADDRESS: 0x05
+MODE: Read Only
+BIT 7 6 5 4 3 2 1 0
+NAME DirChgFault - LowPow - ChgStat[3:0]
+DirChgFaultDirect charging fault  
+0 = Device in normal operation  
+1 = V BAT drops below V PCHG  when battery is in supplement mode.
+LowPowLow Power Mode
+0 = Not In Low Power Mode
+1 = In Low Power Mode
+ChgStat[3:0]Status of Charger Mode 
+0000 = Charger off 
+0001 = Charging suspended due to temperature (see state diagram) 
+0010 = Pre-charge in progress 
+0011 = Fast-charge, constant current mode in progress
+0100 = Fast-charge, constant voltage mode in progress
+0101 = Maintain charge in progress 
+0110 = Maintain charge done 
+0111 = Charger fault condition (see state diagram)
+1000 = Battery Fault Suspend (see state diagram)
+ADDRESS: 0x06
+MODE: Read Only
+BIT 7 6 5 4 3 2 1 0
+NAME - - - ChgThrmRegCur ChgThrmRegVlt ChgThrmStat[2:0]
+ChgThrmRegCurFastCharge Current reduced due to JEITA status
+0 = Not changed
+1 = Reduced
+ChgThrmRegVltBattery Regulation Voltage reduced due to JEITA status
+0 = Not Changed
+1 = Reduced
+ChgThrmStat[2:0]Thermistor Monitor  
+000 = T < T1  
+001 = T1 < T < T2  
+010 = T2 < T < T3  
+011 = T3 < T < T4  
+100 = T > T4  
+101 = No thermistor detected (THM high due to external pullup).  Note: If a parallel resistor is used for 
+thermistor monitoring, this mode may not function properly.  
+110 = NTC input disabled through ThermEn.  
+111 = Detection disabled due to CHGIN not present.
+MAX14748 USB Type-C Charger
+www.maximintegrated.com
+Maxim Integrated  │ 39

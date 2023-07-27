@@ -1,0 +1,39 @@
+Table 20. BCInt Register (0x10)Table 19. JEITAInt Register (0x0F)
+ADDRESS: 0x0F
+MODE: Clear On Read
+BIT 7 6 5 4 3 2 1 0
+NAME - - - ChgThrmRegCurI ChgThrmRegVltI - - ChgThrmI
+ChgThrmRegCurIChgThrmRegCur status change interrupt. 
+0 = Status of ChgThrmRegCur has NOT changed since the last time ChgThrmRegCurI was read  
+1 = Status of ChgThrmRegCur has changed since the last time ChgThrmRegCurI was read
+ChgThrmRegVltIChgThrmRegVlt status change interrupt. 
+0 = Status of ChgThrmRegVlt has NOT changed since the last time ChgThrmRegVltI was read  
+1 = Status of ChgThrmRegVlt has changed since the last time ChgThrmRegVltI was read
+ChgThrmStatIChgThrmStat[2:0] status change interrupt. 
+0 = Status of ChgThrmStat[2:0] has NOT changed since the last time ChgThrmStatI was read  
+1 = Status of ChgThrmStat[2:0] has changed since the last time ChgThrmStatI was read
+ADDRESS: 0x10
+MODE: Clear On Read
+BIT 7 6 5 4 3 2 1 0
+NAME VBUSDetI - - ChgTypRunFI ChgTypRunRI PrChgTypI DCDTmoI ChgTypI
+VBUSDetIVBUSDet status change interrupt. 
+0 = Status of VBUSDet has NOT changed since the last time VBUSDetI was read  
+1 = Status of VBUSDet has changed since the last time VBUSDetI was read
+ChgTypRunFIChgTypRun Falling Edge interrupt. 
+0 = ChgTypRun bit falling edge has NOT occurred since the last time ChgTypRunFI was read  
+1 = ChgTypRun bit falling edge has occurred since the last time ChgTypRunFI was read
+ChgTypRunRIChgTypRun Rising Edge interrupt. 
+0 = ChgTypRun bit rising edge has NOT occurred since the last time ChgTypRunRI was read  
+1 = ChgTypRun bit rising edge has occurred since the last time ChgTypRunRI was read
+PrChgTypIPrChgTyp status change interrupt. 
+0 = Status of PrChgTyp has NOT changed since the last time PrChgTypI was read  
+1 = Status of PrChgTyp has changed since the last time PrChgTypI was read
+DCDTmoIDCDTmo status change interrupt. 
+0 = Status of DCDTmo has NOT changed since the last time DCDTmoI was read  
+1 = Status of DCDTmo has changed since the last time DCDTmoI was read
+ChgTypIChgTyp status change interrupt. 
+0 = Status of ChgTyp has NOT changed since the last time ChgTypI was read  
+1 = Status of ChgTyp has changed since the last time ChgTypI was read
+MAX14748 USB Type-C Charger
+www.maximintegrated.com
+Maxim Integrated  │ 44

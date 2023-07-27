@@ -1,0 +1,39 @@
+Table 49. AICLCFG2 Register (0x2D)
+Table 50. AICLCFG3 Register (0x2E)ADDRESS: 0x2D
+MODE: Read/Write or Read-Only if AppWrtPrtct = “(1) Protected” (See Table 61)
+BIT 7 6 5 4 3 2 1 0
+NAME BYPUVLO[2:0] AICLMaxI[4:0]
+BYPUVLO[2:0]VBUS Theshold below which AICL stops incrementing the current  
+000 = 3.8V  
+001 = 3.9V  
+010 = 4.0V  
+011 = 4.1V  
+100 = 4.2V  
+101 = 4.3V  
+110 = 4.4V  
+111 = 4.5V
+AICLMaxI[4:0]AICL Stop Current (in 100mA step)
+00000 = 100mA
+00001 = 200mA
+…
+11111 = 3.2A
+ADDRESS: 0x2E
+MODE: Read/Write or Read-Only if AppWrtPrtct = “(1) Protected” (See Table 61)
+BIT 7 6 5 4 3 2 1 0
+NAME - - - BYPDeb AICLTBlk[1:0] AICLTStep[1:0]
+BYPDebAICL BYPUVLO[2:0] Rise Threshold Debounce Setting
+0 = 500ms
+1 = 200ms
+AICLTBlk[1:0]TBLANK Time Setting  
+00 = 500ms
+01 = 1s  
+10 = 1.5s
+11 = 5s
+AICLTStep[1:0]TSTEP Time Setting  
+00 = 100ms  
+01 = 200ms  
+10 = 300ms  
+11 = 500ms
+MAX14748 USB Type-C Charger
+www.maximintegrated.com
+Maxim Integrated  │ 62

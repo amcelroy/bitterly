@@ -1,0 +1,28 @@
+Table 40. BBCFG2 Register (0x24)
+ADDRESS: 0x24
+MODE: Read/Write or Read-Only if AppWrtPrtct = “(1) Protected” (See Table 61)
+BIT 7 6 5 4 3 2 1 0
+NAME - - – BBFrcZX BuckVSet[3:0]
+BBFrcZXBBFrcZX sets the Buck in forced ZX mode.
+0 = Forced PWM Mode
+1 = Forced ZX Mode
+BuckVSet[3:0]Buck Regulation Voltage  
+0000 = 4.0V  
+0001 = 4.1V  
+0010 = 4.2V  
+0011 = 4.3V  
+0100 = 4.4V  
+0101 = 4.5V  
+0110 = 4.6V  
+0111 = 4.7V  
+1000 = 4.8V  
+1001 = 4.9V  
+1010 = 5.0V  
+1011 = 5.1V  
+1100 = 5.2V  
+1101 = 5.3V  
+1110 = 5.4V  
+1111 = 5.5V
+MAX14748 USB Type-C Charger
+www.maximintegrated.com
+Maxim Integrated  │ 56

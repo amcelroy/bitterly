@@ -1,0 +1,39 @@
+Table 16. AICLInt Register (0x0C)Table 15. DevInt1 Register (0x0B)
+ADDRESS: 0x0B
+MODE: Clear On Read
+BIT 7 6 5 4 3 2 1 0
+NAME SysFltI ChgInOVPI ILimI VSysRegI ThrmSd150I ThrmSd120I BatDetI WbChgI
+SysFltISysFlt status change interrupt. 
+0 = Status of SysFlt has NOT changed since the last time SysFltI was read  
+1 = Status of SysFlt has changed since the last time SysFltI was read
+ChgInOVPIChgInOVP status change interrupt. 
+0 = Status of ChgInOVP has NOT changed since the last time ChgInOVPI was read  
+1 = Status of ChgInOVP has changed since the last time ChgInOVPI was read
+ILimIILim status change interrupt. 
+0 = Status of ILim has NOT changed since the last time ILimI was read  
+1 = Status of ILim has changed since the last time ILimI was read
+VSysRegIVSysReg status change interrupt. 
+0 = Status of VSysReg has NOT changed since the last time VSysRegI was read  
+1 = Status of VSysReg has changed since the last time VSysRegI was read
+ThrmSd150IThrmSd150 status change interrupt. 
+0 = Status of ThrmSd150 has NOT changed since the last time ThrmSd150I was read  
+1 = Status of ThrmSd150 has changed since the last time ThrmSd150I was read
+ThrmSd120IThrmSd120 status change interrupt.
+0 = Status of ThrmSd120 has NOT changed since the last time ThrmSd120I was read  
+1 = Status of ThrmSd120 has changed since the last time ThrmSd120I was read
+BatDetIBatDet status change interrupt. 
+0 = Status of BatDet has NOT changed since the last time BatDetI was read  
+1 = Status of BatDet has changed since the last time BatDetI was read
+WbChgIWbChg status change interrupt. 
+0 = Status of WbChg has NOT changed since the last time WbChgI was read  
+1 = Status of WbChg has changed since the last time WbChgI was read
+ADDRESS: 0x0C
+MODE: Clear On Read
+BIT 7 6 5 4 3 2 1 0
+NAME - AICLI - - - - - -
+AICLIAICLStatus status change interrupt. 
+0 = Status of AICLStatus has NOT changed since the last time AICLI was read  
+1 = Status of AICLStatus has changed since the last time AICLI was read
+MAX14748 USB Type-C Charger
+www.maximintegrated.com
+Maxim Integrated  │ 42

@@ -1,0 +1,45 @@
+Table 39. BBCFG1 Register (0x23)Table 38. CurLimStatus Register (0x22)
+ADDRESS: 0x22
+MODE: Read Only
+BIT 7 6 5 4 3 2 1 0
+NAME CurLim2Rb[2:0] SpvChgIlim[4:0]
+CurLim2Rb[2:0]Active Charger/Boost current as percent of the value set by RSET. 
+0 = 20%  
+1 = 30%  
+2 = 40%  
+3 = 50%  
+4 = 60%  
+5 = 70%  
+6 = 80%  
+7 = 100% 
+SpvChgIlim[4:0]SpvChgIlim[4:0] shows the actual input current limit currently set.  
+00000 = 0.10A      
+00001 = 0.20A        
+…
+11101 = 3.00A
+11110 = Reserved
+11111 = Reserved
+ADDRESS: 0x23
+MODE: Read/Write or Read-Only if AppWrtPrtct = “(1) Protected” (See Table 61)
+BIT 7 6 5 4 3 2 1 0
+NAME BoostRComp[3:0] - - - -
+BoostRComp[3:0]Sets the internal compensation resistor for the boost mode  
+0000 = 9.5k W 
+0001 = 17.3k W 
+0010 = 25.3k W 
+0011 = 33.2k W 
+0100 = 41.4k W 
+0101 = 49.2k W 
+0110 = 57.3k W 
+0111 = 65.1k W 
+1000 = 73.6k W 
+1001 = 81.4k W  
+1010 = 89.4k W  
+1011 = 97.2k W  
+1100 = 105.5k W  
+1101 = 113.3k W  
+1110 = 121.4k W  
+1111 = 129.2k W 
+MAX14748 USB Type-C Charger
+www.maximintegrated.com
+Maxim Integrated  │ 55

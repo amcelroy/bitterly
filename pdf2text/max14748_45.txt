@@ -1,0 +1,39 @@
+Table 23. AICLIntMask Register (0x13)Table 22. DevInt1Mask Register (0x12)
+ADDRESS: 0x12
+MODE: Read/Write
+BIT 7 6 5 4 3 2 1 0
+NAME SysFltIM ChgInOVPIM ILimIM VSysRegIM ThrmSd150IM ThrmSd120IM BatDetIM WbChgIM
+SysFltIMSysFltI Interrupt Mask
+1 = Mask  
+0 = Unmask
+ChgInOVPIMChgInOVPI Interrupt Mask
+1 = Mask  
+0 = Unmask
+ILimIMILimI Interrupt Mask
+1 = Mask  
+0 = Unmask
+VSysRegIMVSysRegI Interrupt Mask
+1 = Mask  
+0 = Unmask
+ThrmSd150IMThrmSd150I Interrupt Mask
+1 = Mask  
+0 = Unmask
+ThrmSd120IMThrmSd120I Interrupt Mask
+1 = Mask  
+0 = Unmask
+BatDetIMBatDetI Interrupt Mask
+1 = Mask  
+0 = Unmask
+WbChgIMWbChgI Interrupt Mask
+1 = Mask  
+0 = Unmask
+ADDRESS: 0x13
+MODE: Read/Write
+BIT 7 6 5 4 3 2 1 0
+NAME - AICLIM - - - - - -
+AICLIMAICLI Interrupt Mask
+1 = Mask  
+0 = Unmask
+MAX14748 USB Type-C Charger
+www.maximintegrated.com
+Maxim Integrated  │ 46

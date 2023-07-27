@@ -1,0 +1,42 @@
+Table 25. ChgIntMask Register (0x15)Table 24. DevInt2Mask Register (0x14)
+ADDRESS: 0x14
+MODE: Read/Write
+BIT 7 6 5 4 3 2 1 0
+NAME - BattPREQIM - BypUVLOIM SysUVLOIM DCDCILimIM DCDCRunAwayIM DCDCPGoodIM
+BattPREQIMBattPREQI Interrupt Mask
+1 = Mask  
+0 = Unmask
+BypUVLOIMBypUVLOI Interrupt Mask
+1 = Mask  
+0 = Unmask
+SysUVLOIMSysUVLOI Interrupt Mask
+1 = Mask  
+0 = Unmask
+DCDCILimIMDCDCILimI Interrupt Mask
+1 = Mask
+0 = Unmask
+DCDCRunAwayIM DCDCRunAwayI Interrupt Mask
+1 = Mask
+0 = Unmask
+DCDCPGoodIMDCDCPGoodI Interrupt Mask
+1 = Mask  
+0 = Unmask
+ADDRESS: 0x15
+MODE: Read/Write
+BIT 7 6 5 4 3 2 1 0
+NAME DirChgFaultIM LowPowRIM LowPowFIM - - - - ChgStatIM
+DirChgFaultIMDirChgFaultI Interrupt Mask
+1 = Mask  
+0 = Unmask
+LowPowRIMLowPowRI Interrupt Mask
+1 = Mask  
+0 = Unmask
+LowPowFIMLowPowFI Interrupt Mask
+1 = Mask  
+0 = Unmask
+ChgStatIMChgStatI Interrupt Mask
+1 = Mask  
+0 = Unmask
+MAX14748 USB Type-C Charger
+www.maximintegrated.com
+Maxim Integrated  │ 47

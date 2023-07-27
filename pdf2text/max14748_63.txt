@@ -1,0 +1,30 @@
+Table 57. FLTSel Register (0x35)Table 56. Reserved Register (0x34)Table 55. LowPow Register (0x33)
+ADDRESS: 0x33
+MODE: Read/Write
+BIT 7 6 5 4 3 2 1 0
+NAME LowPowEn - - - - - - LowPowAbort
+LowPowEnLow Power Mode Enable. Set LowPowEn to 1 to enter Low Power mode. Note that if LowPowAbort is 1, Low 
+Power Mode is not allowed. This bit auto-resets to 0.
+0 = No Action
+1 = Enter Low Power mode
+LowPowAbortHigh Priority Low Power Mode Abort
+0 = Device is allowed to enter Low Power mode by writing 1 to LowPowEn.
+1 = Device is NOT allowed to enter Low Power Mode. Low Power Mode will be exited if device has already 
+entered it. 
+ADDRESS: 0x34
+MODE: Read Only
+BIT 7 6 5 4 3 2 1 0
+NAME - - - - - -- -
+ADDRESS: 0x35
+MODE: Read/Write
+BIT 7 6 5 4 3 2 1 0
+NAME FLTSelect[1:0] - - - - - -
+FLTSelect[10]FLTIN  Charger-Faulting and External Reset Function Enable
+00 = No effect and internally ignored  
+01 = Low on FLTIN  pin (60ms debounce) places the charger in Battery Fault Charge Suspend state 
+(ChgStat[3:0] = 1000). 
+1x = Falling edge on FLTIN  pin resets all registers. Reset types are RST1/RST2/RST3. See Table 59 and 
+Table 60 for more details.
+MAX14748 USB Type-C Charger
+www.maximintegrated.com
+Maxim Integrated  │ 64

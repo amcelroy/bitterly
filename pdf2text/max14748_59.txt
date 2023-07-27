@@ -1,0 +1,36 @@
+Table 46. CHGINILim1 Register (0x2A)Table 45. CCCtrl3 Register (0x29)
+* AttachWait.SRC, Try.SNK, Attached.SNK, TryWait.SRC, Unattached.SNK, and Unattached SRC are defined in USB Type-C 
+Specificaiton Release 1.1. ADDRESS: 0x29
+MODE: Read/Write
+BIT 7 6 5 4 3 2 1 0
+NAME - - - - CCTrySnk CCPreferSnk CCDRPPhase[1:0]
+CCTrySnkEnable transition from AttachWait.SRC* to Try.SNK* then to Attach.SNK_CCx* or to TryWait.SRC* for DRP 
+that strongly prefers the SNK role. CCTrySnk has higher priority than CCPreferSnk.  
+0 = Disabled
+1 = Enabled
+CCPreferSnkEnable transition from Unattached.SRC* to Try.SNK* then to Unattached.SNK* for DRP that strongly prefers 
+the SNK role.
+0 = Disabled
+1 = Enabled
+CCDRPPhase[1:0]Percent of time device is acting as Unattached.SRC* when CCSNKSRC = 1  
+00 = 35%  
+01 = 40%  
+10 = 45%  
+11 = 50%
+ADDRESS: 0x2A
+MODE: Read Only
+BIT 7 6 5 4 3 2 1 0
+NAME - CHGINILim[6:0]
+CHGINILim[6:0]Status of charger input current limit set by charger detection (in 33mA  step). Note that the first 4 codes are 
+all 100mA.  
+0000000 = 100mA
+0000001 = 100mA
+0000010 = 100mA
+0000011 = 100mA
+0000100 = 133mA
+0000011 = 166mA
+…
+1111111 = 4059mA
+MAX14748 USB Type-C Charger
+www.maximintegrated.com
+Maxim Integrated  │ 60

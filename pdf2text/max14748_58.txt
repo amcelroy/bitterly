@@ -1,0 +1,35 @@
+Table 44. CCCtrl2 Register (0x28)
+* Attached.SNK, Unattached.SRC, and Unattached.SNK are defined in USB Type-C Specificaiton Release 1.1.ADDRESS: 0x28
+MODE: Read/Write
+BIT 7 6 5 4 3 2 1 0
+NAME CCForceError SnkAttachedLock CCSnkSrcSwp CCSrcSnkSwp CCVcnSwp CCVcnEn CCSrcRst CCSnkRst
+CCForceErrorBit resets to 0 after a write (This bit resets to 0 automatically when action is done)  
+0 = No action  
+1 = Force transition to ErrorRecovery state.
+SnkAttachedLockBit resets to 0 after a minimum of 1.1s  
+0 = Exit Attached.SNK* state when V CHGIN  < VBDET  for more than t PDDEB  
+1 = Locked in Attached.SNK* state for a minimum of 1.1s if VBUS not present 
+CCSnkSrcSwpUSB PD Power role swap from Sink to Source.  This bit must be written to 0 once the USB PD controller 
+completes the power role swap sequence  
+0 = No Swap Requested  
+1 = Swap Requested
+CCSrcSnkSwpUSB PD Power role swap from Source to Sink.  This bit must be written to 0 once the USB PD controller 
+completes the power role swap sequence  
+0 = No Swap Requested  
+1 = Swap Requested
+CCVcnSwpSignal State Machine to Swap V CONN  roles.  Bit resets to 0 after a write (Note this bit will reset to 0 
+automatically when action is done)  
+0 = No change in V CONN  role 
+1 = force change in V CONN
+CCVcnEnForce state of V CONN  
+0 = Force V CONN  off (both external Buck converter and V CONN  switch)  
+1 = Automatic operation based on State Machine
+CCSrcRstForce a reset of the State Machine – Immediate transition to Unattached.SRC* state. Bit resets to 0 after a write.  
+0 = No reset  
+1 = Request reset
+CCSnkRstForce a reset of the State Machine – Immediate transition to Unattached.SNK* state. Bit resets to 0 after a write.  
+0 = No reset  
+1 = Request reset
+MAX14748 USB Type-C Charger
+www.maximintegrated.com
+Maxim Integrated  │ 59

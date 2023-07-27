@@ -10,11 +10,9 @@
 /// then write or transmit the results back to the peripheral or another device
 /// (host pc?). This library provides an easy way to interact with the registers
 /// of a peripheral.
-
-pub trait I2C {
-    fn to_i2c(&self, buffer: &mut [u8]) -> u8;
-    fn from_i2c(&self, buffer: &[u8]) -> u8;
-}
+///
+///
+///
 
 /// The register_backer! macro is used to generate a RegisterBacker struct that is used
 /// by subsequent macros, such as peripheral!. The generated struct has accessors
@@ -159,6 +157,7 @@ macro_rules! peripheral {
 
         type PeripheralType = $peripheral_name;
     };
+
 }
 
 /// This macro is used to generate a struct that contains a pointer to a register. This is useful
@@ -177,6 +176,10 @@ macro_rules! register {
         impl $register {
             pub fn contents(&self) -> RegisterType {
                 unsafe { (*self.register).contents }
+            }
+
+            pub fn address(&self) -> usize {
+                RegisterId::$register as usize as usize
             }
 
             pub fn update(&mut self, val: RegisterType) -> &mut Self {
@@ -278,7 +281,7 @@ macro_rules! bitrange_enum_values {
 macro_rules! bitrange {
     ($register:ident, $bitrange_name:ident, $msb:literal, $lsb:literal, $val_type:ty) => {
         paste! {
-            trait $bitrange_name {
+            pub trait $bitrange_name {
                 fn [<get_ $bitrange_name>](&self) -> Option<$val_type>;
                 fn [<set_ $bitrange_name>](&mut self, value: $val_type) -> &mut Self;
             }

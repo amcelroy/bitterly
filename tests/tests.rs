@@ -126,7 +126,7 @@ mod tests {
 
         max14748
             .DevStatus1()
-            .clear_all()
+            .clear()
             .set_BatDet(true)
             .set_ThrmSd120(true);
         let contents = max14748.DevStatus1().contents();
@@ -393,6 +393,6 @@ mod tests {
 
         let bcstatus = max14748.BcStatus().get_DcdTmo();
 
-        max14748.JeitaStatus().clear_all();
+        max14748.JeitaStatus().clear();
     }
 }

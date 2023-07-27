@@ -856,5 +856,8 @@ pub fn main() {
         .set_ThrmSd150(true)
         .address();
 
+    max14748.ChgStatus().get_ChgStat().unwrap();
+    max14748.ChgStatus().set_ChgStat(ChgStatusEnum::Fault);
+
     let bcstatus = max14748.BcStatus().get_VbusDet();
 }

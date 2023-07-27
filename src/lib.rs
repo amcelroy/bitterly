@@ -126,7 +126,8 @@ macro_rules! register_backer {
 /// This macro is used to generate a struct called a peripheral that allocates
 /// a number of registers that can be pointed to using the subsequent macros. The
 /// macro takes three arguments, the name of the peripheral, the number of registers
-/// that the peripheral has, and a list of tuples that contain the name of the register.
+/// that the peripheral has, and a list of tuples that contain the name of the
+/// register and address.
 ///
 /// Note, the number of registers should be >= the number of registers in the list of tuples.
 /// or there will be a panic at runtime if you try to access a register that is outside of
@@ -160,9 +161,7 @@ macro_rules! peripheral {
 
 }
 
-/// This macro is used to generate a struct that contains a pointer to a register. This is useful
-/// when you have a peripheral that has multiple registers that you want to access. The macro
-/// generates a struct with the name provided, and a function with the name provided that returns.
+/// This macro is used to generate a struct that contains a pointer to a register.
 ///
 /// This function requires that a peripheral has been created using the
 /// peripheral! macro so that that pointers to the backing memory can be used.
@@ -189,7 +188,7 @@ macro_rules! register {
                 self
             }
 
-            pub fn clear_all(&mut self) -> &mut Self {
+            pub fn clear(&mut self) -> &mut Self {
                 unsafe {
                     (*self.register).clear_all();
                 }

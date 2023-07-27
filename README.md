@@ -1,12 +1,25 @@
 ![bitterly](https://github.com/amcelroy/bitterly/actions/workflows/rust.yml/badge.svg)
 
 # bitterly
-Create registers that have an address type that can be different from the register data type. The registers can be created with named bits (`bitfield`) and ranges of bits (`bitrange`).
+Creates a `peripheral!` with with human readable register accessors, bit fields, 
+and bit ranges. `peripheral!` registers are stored in statically allocated memory
+and should be used as an intermediary to interface to a peripheral. For example,
+and I2C device could be modeled and implemented, with data fetched from the
+I2C device, stored in a `bitterly` created `peripheral!`, manipulated in code, and
+sent back to the I2C device. It is up to the user to get data into and out of
+the `peripheral!` using a HAL or some other approach.
+
+The goal is to reduce errors interacting with peripherals by constraing the
+way that programmers interact with the registers and memory. It is hopefully
+easier, safer, and more human readable to use `get_BatDet()` to determine if a 
+battery is detected.
 
 ## Why?
-Why not. I was working with an I2C chip that had an address space of u8 and a register data type of u16 and there didn't seem to be anything out there.
-
-This is a piece of my first Rust project and thought others in the embedded space might benefit.
+I first tried using `tock-registers` but was limited by the requirement that
+the registers be contiguous, memory-mapped, and have the same address size as
+the data stored there. The Max17261, for example, has 8-bit memory addressing
+but 16-bit data which can't be created with `tock-registers`. I also need to 
+gain experience with the Rust macro system, and this project was a good fit.
 
 ## Testing
 This library uses `no_std`. To test on a PC, do the following:
@@ -18,195 +31,232 @@ with your systems triplet.
 
 ## Concepts
 
-###Backing Registers
+### Backing Registers
 
-Backing registers are created using the `register_backer`. The `register_backer` macro creates a simple struct with a name, and address size, and a register size. Backing registers have basic bit manipulation features to clear, set, toggle bits, which may be all that is needed. 
+Backing registers are created using the `register_backer`. The `register_backer` 
+macro creates a simple struct with a name, and address size, and a register 
+size. Backing registers have basic bit manipulation features to clear, set, 
+toggle bits. Ranges of bits can be set using `BitRange` and `mask`, `clear_range`
+, `set_Range`, and `get_range`.
 
-The `register_backer` macro takes 3 arguments:
-- Name - Name of the register backer struct
-- Address Type - Type of the address (u8, u16, u32, u64, etc.)
-- Data Type - Type of the data stored in the register (u8, u16, u32, u64, etc)
+The `register_backer` macro takes 2 arguments:
+- `Name`: Name of the register backer struct
+- `Address Type`: Type of the address (u8, u16, u32, u64, etc.)
 
-An example for the Max17261 Gas Gauge which uses 8-bit addressing and 16-bit register data would have a backing register of:
+An example for the Max17261 Gas Gauge which uses 8-bit addressing and 16-bit 
+register data would have a backing register of:
 ```
 fn main() {
     use bitterly::register_backer;
 
-    register_backer!(I2CRegister, u8, u16);
-}
-
-```
-which generates:
-```
-pub struct I2CRegister {
-    address: u8,
-    contents: u16,
-}
-impl I2CRegister {
-    pub fn new(address: u8, contents: u16) -> Self {
-        Self {
-            contents: contents,
-            address: address,
-        }
-    }
-    pub fn contents(&self) -> u16 {
-        self.contents
-    }
-    pub fn set_bit(&mut self, bit: u16) -> &mut Self {
-        self.contents |= 1 << (bit as u16);
-        self
-    }
-    pub fn set_all(&mut self) -> &mut Self {
-        self.contents = <u16>::MAX;
-        self
-    }
-    pub fn clear_bit(&mut self, bit: u16) -> &mut Self {
-        self.contents &= !(1 << (bit as u16));
-        self
-    }
-    pub fn clear_all(&mut self) -> &mut Self {
-        self.contents = 0;
-        self
-    }
-    pub fn toggle_bit(&mut self, bit: u16) -> &mut Self {
-        self.contents ^= 1 << (bit as u16);
-        self
-    }
-    pub fn is_set(&self, bit: u16) -> bool {
-        self.contents & (1 << (bit as u16)) != 0
-    }
-    pub fn is_clear(&self, bit: u16) -> bool {
-        self.contents & (1 << (bit as u16)) == 0
-    }
-    pub fn update(&mut self, new_val: u16) -> &mut Self {
-        self.contents = new_val;
-        self
-    }
+    register_backer!(Register, u16);
 }
 ```
 
-### Register and Bitfield
-The Max17261 has a lot of registers that have named bits and ranges of bits that would be more intuitive to work with as humans. The status register, Address 0x00h has 13 bits that can be get / set. 
+### Peripheral
 
-When creating a new register `struct`, it is _critical_ that the new struct contain a `register` field of the type created using the `register_backer` macro.
+A peripheral represents the device that contains the registers, like the 
+Max17261 or Max14748. This is created using the `peripheral!` macro and takes
+the following arguments:
+- `Name`: The name of the peripheral struct to be created, for example `Max14748`
+- `Number of registers`: This is used to statically allocate the memory used
+to store. 
+- `Register Map`: This is a list of tuples that are the register name and the 
+address. This is used to create an `enum` that maps the registers created with 
+`register!` (see below) back to an address offset, and ultimately the static
+memory.
 
-The `register` macro has 2 arguments:
-- Name - Name of the register, must match the `struct` name with the `register` field
-- Type of the Backing Register - The type of the backing register, for example `I2CRegister`
+__Note__: It is important that the name in the tuples matches the name of the
+registers created using. For example:
+```
+fn main() {
+    use bitterly::{register, register_backer, peripheral};
 
-Let's create a `StatusRegister` using our backing register created above:
+    register_backer!(I2CRegister, u8);
+
+    peripheral!(
+        Max14748,
+        2,
+        [
+            (ChipId, 0x00),
+            (ChipRev, 0x01) // Note: don't add a comma for the last item in list
+        ]
+    );
+
+    /* ... more code ... */
+    register!(chipid); // <-- nope
+    register!(ChipId); // <-- yep
+    /* bitfields / bitranges for ChipRev (if any) */
+
+    register!(Chiprev); // <-- nope
+    register!(ChipRev); // <-- yep
+    /* bitfields / bitranges for ChipRev (if any) */
+}
+```
+
+__Note 2__: The `Number of Registers` input to the macro can be less than the
+tuple list, but accessing named registers will cause an out of bounds memory 
+panic. The Number of Registers can also be greater than the tuple list, which 
+will just statically allocate more registers that can't be easily accessed.
+
+
+### Registers
+
+A register is defined using the `register!` macro, and again, should be the same
+name as those used in the `Register Map` tuple in the `peripheral!` macro. Once
+a register is defined, the details of the register can be implemented.
+
+Many devices have reserved registers. I choose to implement these as Reserved
+followed by the address. For the Max14748, 0x08 is reserved and would be:
+`register!(Reserved0x08)`.
+
+A `register!` has:
+- `contents()`: returns the value of the register in memory
+- `address()`: returns the address of the register
+- `update(value)`: Sets the value of a register in memory
+- `clear()`: Sets the value of the register to 0 in memory
+
+### Bitfields
+
+The simplest way to interact with a register is a `bitfield!` which represents
+a binary, single bit that has a name. 
 
 ```
 fn main() {
-    use paste::paste;
-    use bitterly::{register, register_backer, bitfield};
+    use bitterly::{register, register_backer, peripheral};
 
-    register_backer!(I2CRegister, u8, u16);
+    register_backer!(I2CRegister, u8);
 
-    pub struct StatusRegister {
-        register: I2CRegister, // Our new register MUST have a register field
+    peripheral!(
+        Max14748,
+        2,
+        [
+            (ChipId, 0x00),
+            (ChipRev, 0x01),
+            (DevStatus1, 0x02) // Note: don't add a comma for the last item in list
+        ]
+    );
 
-        /* add other fields here, though not used by bitterly */
-    }
+    /* ... more code ... */
+    register!(ChipId);
+    register!(ChipRev); 
 
-    impl StatusRegister {
-        register!(StatusRegister, I2CRegister); //
-    }
-}
+    register!(DevStatus1);
+    bitfield!(DevStatus1, SysFit, 7);
+    bitfield!(DevStatus1, ChgInOvp, 6);
+    bitfield!(DevStatus1, ILim, 5);
+    bitfield!(DevStatus1, VSysReg, 4);
+    bitfield!(DevStatus1, ThrmSd150, 3);
+    bitfield!(DevStatus1, ThrmSd120, 2);
+    bitfield!(DevStatus1, BatDet, 1);
+    bitfield!(DevStatus1, WbChg, 0);
 
-```
-This is the least useful, but minimum viable, implemntation of a bitterly register. We can do better using human readable `bitfield` which will provide easy to understand functions for bits in a register.
+    let max14748 = Max14748::new();
 
-The `bitfield` macro has 2 arguments:
-- Name - Name of the bit
-- Bit location - 0 indexed bit associated with the name. For example, a 16-bit register would have viable values of 0 to 15.
+    /* 
+    Use I2C to read and update registers using the HAL and register!
+    functions such as address() and update(...).
+    */
 
-Improving on the above example:
+    let bat_det = max14748.DevStatus1().get_BatDet();
 
-```
-fn main() {
-    use paste::paste;
-    use bitterly::{register, register_backer, bitfield};
+    // Use that info as needed
 
-    register_backer!(I2CRegister, u8, u16);
-
-    pub struct StatusRegister {
-        register: I2CRegister, // Our new register MUST have a register field
-
-        /* add other fields here, though not used by bitterly */
-    }
-
-    impl StatusRegister {
-        register!(StatusRegister, I2CRegister); //
-        bitfield!(por, 1); // Power on reset
-        /*...*/
-        bitfield!(br, 15); // Battery removal
-    }
 }
 ```
-We added 2 `bitfield`s, let's take a look at the macro expansion:
+
+### Bitrange and enumerated Bitranges
+
+Registers often have a range of bits that represent some state. Bitterly handles
+this using the `bitrange_enum_values!` macro. This macro creates an `enum` of 
+a type (`u8`, `u16`, etc) and a list of tuples of the `enum` name and value.
+The `bitrange_enum_values!` macro must be used before using the `bitrange!` 
+macro. 
+
+The `bitrange_enum_values!` has the following inputs:
+- `Enum Name`: Name of the macro generated enum. For example, `ChgStatusEnum`.
+- `type`: Type the enum represents, for example `u8`, `u16`, etc.
+- `(name, value)`: List of tuples that are the named enum values and the numeric
+value. 
+
+For example, the `ChgStatus` register of the Max14748, register `0x05` would
+look like:
 ```
-impl StatusRegister {
-    pub fn register(&mut self) -> &mut I2CRegister {
-        &mut self.register
-    }
-    pub fn new(reg: I2CRegister) -> StatusRegister {
-        StatusRegister { register: reg }
-    }
-    pub fn por_get(&self) -> bool {
-        self.register.is_set(1)
-    }
-    pub fn por_set(&mut self, val: bool) -> &mut Self {
-        if val {
-            self.register.set_bit(1);
-        } else {
-            self.register.clear_bit(1);
-        }
-        self
-    }
-    pub fn br_get(&self) -> bool {
-        self.register.is_set(15)
-    }
-    pub fn br_set(&mut self, val: bool) -> &mut Self {
-        if val {
-            self.register.set_bit(15);
-        } else {
-            self.register.clear_bit(15);
-        }
-        self
-    }
+    bitrange_enum_values!(
+        ChgStatusEnum,
+        u8,
+        [
+            (Off, 0),
+            (Suspended, 1),
+            (PreChg, 2),
+            (FastChargeI, 3),
+            (FastChargeV, 4),
+            (MaintainInProgress, 5),
+            (MaintainComplete, 6),
+            (Fault, 7),
+            (FaultSuspended, 8) // Note: don't add a comma for the last item in list
+        ]
+    );
+```
+This creates functions that can set a range of bits and fetch values using
+typed values.
+```
+let value: ChgStatusEnum = max14748.ChgStatus().get_ChgStat().unwrap();
+match value {
+    ChgStatusEnum::Off => {},
+    ChgStatusEnum::Suspended => {}
+    /* etc. */
+    _ => {}
 }
 ```
-The `register` macro provides functions to get the backing register and instantiate a new `StatusRegister`. The `bitfield` macros provide functions to get / set to interact with the named bits.
 
-### Bitrange
-The Max17261 also has fields of bits that would be easier to work with using human readable names. It would also be nice if bits were masked for easy clearing and setting of these values. 
+The `bitrange_enum_values!` are used with the `bitrange!` macro. The `bitrange!`
+macro has the following inputs:
+- `Register Name`: Should match that used in the `register!` macro.
+- `Name of the bitrange`: Name of the range of bits, used to name the get / set
+function.
+- `Upper Bit`: High bit of the range
+- `Lower Bit`: Low bit of the range
+- `Enum`: The `bitrange_enum_values!` for this range. 
 
-The `bitrange` macro takes 4 arguments:
-- Name - name of the bitrange
-- Upper Bit - Upper bit of the range (0 indexed)
-- Lower Bit - Lower bit of the range (0 indexed)
-- Type - The type used when getting / setting. This should match the Data Type argument used with `register_backer`.
-
-The RelaxCfg register (0x2A) has 3 named ranges of bits, lets implement it:
+For example:
 ```
-fn main() {
-    use paste::paste;
-    use bitterly::{register, register_backer, bitfield, bitrange};
-
-    register_backer!(I2CRegister, u8, u16);
-
-    pub struct RelaxCfgRegister {
-        register: I2CRegister, // Our new register MUST have a register field
-
-        /* add other fields here, though not used by bitterly */
-    }
-
-    impl RelaxCfgRegister {
-        register!(RelaxCfgRegister, I2CRegister); //
-        bitrange!(load, 15, 9, u16); // Load
-        bitrange!(dv, 8, 4, u16); // Delta voltage
-        bitrange!(dt, 3, 0, u16); // Delta time
-    }
-}
+    register!(AiclCfg3);
+    bitrange_enum_values!(
+        AiclTBlkEnum,
+        u8,
+        [
+            (_0_500ms, 0b00),
+            (_1_0s, 0b01),
+            (_1_5s, 0b10),
+            (_5_0s, 0b11)
+        ]
+    );
+    bitrange_enum_values!(
+        AiclTStepEnum,
+        u8,
+        [
+            (_100ms, 0b00),
+            (_200ms, 0b01),
+            (_300ms, 0b10),
+            (_500ms, 0b11)
+        ]
+    );
+    bitfield!(AiclCfg3, BypDeb, 4);
+    bitrange!(AiclCfg3, AiclTBlk, 3, 2, AiclTBlkEnum);
+    bitrange!(AiclCfg3, AiclTStep, 1, 0, AiclTStepEnum);
 ```
+
+Some bitranges aren't really fit for an enum, for example the `ChipRev` register
+of the Max14748. In this case, use `bitrange_raw!` which uses a type instead of
+an enum.
+
+```
+register!(ChipRev);
+bitrange_raw!(ChipRev, RevH, 7, 4, u8);
+bitrange_raw!(ChipRev, RevL, 3, 0, u8);
+```
+
+
+
+

@@ -136,7 +136,7 @@ macro_rules! register_backer {
 macro_rules! peripheral {
     //($enum_name:ident, $enum_type:ty, [$(($name:ident, $value:literal)),+]) => {
 
-    ($peripheral_name:ident, $count:literal, [$(($register:ident, $addr:literal)),+]) => {
+    ($peripheral_name:ident, $i2c_addr:literal, $count:literal, [$(($register:ident, $addr:literal)),+]) => {
         #[derive(Debug, Copy, Clone, PartialEq, Eq)]
         pub enum RegisterId {
             $(
@@ -146,13 +146,24 @@ macro_rules! peripheral {
 
         pub struct $peripheral_name {
             registers: [RegisterBacker; $count],
+            i2c_addr: u16,
         }
 
         impl $peripheral_name {
             pub fn new() -> Self {
                 $peripheral_name {
                     registers: [RegisterBacker { contents: 0 }; $count],
+                    i2c_addr: $i2c_addr,
                 }
+            }
+
+            pub fn direct_update(&mut self, address: usize, val: RegisterType) -> &mut Self {
+                self.registers[address].update(val);
+                self
+            }
+
+            pub fn get_i2c_address(&self) -> u16 {
+                self.i2c_addr
             }
         }
 
@@ -169,7 +180,7 @@ macro_rules! peripheral {
 macro_rules! register {
     ($register:ident) => {
         pub struct $register {
-            register: *mut Register,
+            register: *mut RegisterBacker,
         }
 
         impl $register {
@@ -200,7 +211,7 @@ macro_rules! register {
             pub fn $register(&self) -> $register {
                 $register {
                     register: &self.registers[RegisterId::$register as usize] as *const _
-                        as *mut Register,
+                        as *mut RegisterBacker,
                 }
             }
         }

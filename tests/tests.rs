@@ -231,17 +231,18 @@ mod tests {
 
         peripheral!(
             Max14748,
+            0x0A,
             8,
             [
-                (ChipId, 0x00),
-                (ChipRev, 0x01),
-                (DevStatus1, 0x02),
-                (AiclStatus, 0x03),
-                (DevStatus2, 0x04),
-                (ChgStatus, 0x05),
-                (JeitaStatus, 0x06),
-                (BcStatus, 0x07),
-                (Reserved1, 0x08)
+                (ChipId, 0x00, 0),
+                (ChipRev, 0x01, 1),
+                (DevStatus1, 0x02, 2),
+                (AiclStatus, 0x03, 3),
+                (DevStatus2, 0x04, 4),
+                (ChgStatus, 0x05, 5),
+                (JeitaStatus, 0x06, 6),
+                (BcStatus, 0x07, 7),
+                (Reserved1, 0x08, 8)
             ]
         );
 

@@ -2,12 +2,12 @@
 
 # bitterly
 Creates a `peripheral!` with with human readable register accessors, bit fields, 
-and bit ranges. `peripheral!` registers are stored in statically allocated memory
+and bit ranges. `peripheral!` registers are stored in an allocated memory
 and should be used as an intermediary to interface to a peripheral. For example,
 and I2C device could be modeled and implemented, with data fetched from the
 I2C device, stored in a `bitterly` created `peripheral!`, manipulated in code, and
 sent back to the I2C device. It is up to the user to get data into and out of
-the `peripheral!` using a HAL or some other approach.
+the `peripheral!` memory using a HAL or some other approach.
 
 The goal is to reduce errors interacting with peripherals by constraing the
 way that programmers interact with the registers and memory. It is hopefully
@@ -28,6 +28,20 @@ This library uses `no_std`. To test on a PC, do the following:
 be x86_64-apple-darwin.
 3. run `cargo test --target x86_64-apple-darwin`. Replace `x86_64-apple-darwin` 
 with your systems triplet.
+
+## Using Bitterly
+
+Bitterly uses itself, but also the `paste` library. `paste` is used to generate
+the named getters and setters. If you are creating a new Bitterly peripheral, 
+the following use statement is helpful to get start:
+
+```
+use bitterly::{
+    bitfield, bitrange, bitrange_enum_values, bitrange_raw, peripheral, register,
+    register_backer,
+};
+use paste::paste;
+```
 
 ## Concepts
 
@@ -59,15 +73,18 @@ A peripheral represents the device that contains the registers, like the
 Max17261 or Max14748. This is created using the `peripheral!` macro and takes
 the following arguments:
 - `Name`: The name of the peripheral struct to be created, for example `Max14748`
-- `Number of registers`: This is used to statically allocate the memory used
-to store. 
-- `Register Map`: This is a list of tuples that are the register name and the 
-address. This is used to create an `enum` that maps the registers created with 
-`register!` (see below) back to an address offset, and ultimately the static
-memory.
+- `Number of registers`: This is used to allocate the memory used
+to store all of the registers. 
+- `Register Map`: This is a list of tuples that are the register name, the 
+address, and the index of the register in the allocated array. 
+This is used to create an `enum` that maps the registers created with 
+`register!` (see below) back to an address offset and index offset. 
+Many times, the register address and index will match, but if you choose not 
+to implement reserved registers or have a non-zero starting address, this will 
+be helpful.
 
 __Note__: It is important that the name in the tuples matches the name of the
-registers created using. For example:
+registers created using `register!`. For example:
 ```
 fn main() {
     use bitterly::{register, register_backer, peripheral};
@@ -76,20 +93,24 @@ fn main() {
 
     peripheral!(
         Max14748,
-        2,
+        0x0A, // 7-bit I2C address
+        2, // Number of registers implimented
         [
-            (ChipId, 0x00),
-            (ChipRev, 0x01) // Note: don't add a comma for the last item in list
+            // (Register name, register address, register index) 
+            (ChipId, 0x00, 0),
+
+            // (Register name, register address, register index) 
+            (ChipRev, 0x01, 1) // Note: don't add a comma for the last item in list
         ]
     );
 
     /* ... more code ... */
     register!(chipid); // <-- nope
-    register!(ChipId); // <-- yep
+    register!(ChipId); // <-- yep, matches the peripheral! tuple name above
     /* bitfields / bitranges for ChipRev (if any) */
 
     register!(Chiprev); // <-- nope
-    register!(ChipRev); // <-- yep
+    register!(ChipRev); // <-- yep, matches the peripheral! tuple name above
     /* bitfields / bitranges for ChipRev (if any) */
 }
 ```
@@ -97,7 +118,7 @@ fn main() {
 __Note 2__: The `Number of Registers` input to the macro can be less than the
 tuple list, but accessing named registers will cause an out of bounds memory 
 panic. The Number of Registers can also be greater than the tuple list, which 
-will just statically allocate more registers that can't be easily accessed.
+will just allocate more registers that can't be easily accessed.
 
 
 ### Registers
@@ -129,11 +150,11 @@ fn main() {
 
     peripheral!(
         Max14748,
-        2,
+        3,
         [
-            (ChipId, 0x00),
-            (ChipRev, 0x01),
-            (DevStatus1, 0x02) // Note: don't add a comma for the last item in list
+            (ChipId, 0x00, 0),
+            (ChipRev, 0x01, 1),
+            (DevStatus1, 0x02, 2) // Note: don't add a comma for the last item in list
         ]
     );
 
@@ -229,7 +250,7 @@ For example:
             (_0_500ms, 0b00),
             (_1_0s, 0b01),
             (_1_5s, 0b10),
-            (_5_0s, 0b11)
+            (_5_0s, 0b11) // Note: don't add a comma for the last item in list
         ]
     );
     bitrange_enum_values!(
@@ -239,7 +260,7 @@ For example:
             (_100ms, 0b00),
             (_200ms, 0b01),
             (_300ms, 0b10),
-            (_500ms, 0b11)
+            (_500ms, 0b11) // Note: don't add a comma for the last item in list
         ]
     );
     bitfield!(AiclCfg3, BypDeb, 4);

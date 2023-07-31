@@ -58,13 +58,14 @@ mod tests {
 
         peripheral!(
             Max14748,
+            0x0A,
             5,
             [
-                (ChipId, 0x00),
-                (ChipRev, 0x01),
-                (DevStatus1, 0x02),
-                (AiclStatus, 0x03),
-                (DevStatus2, 0x04)
+                (ChipId, 0x00, 0),
+                (ChipRev, 0x01, 1),
+                (DevStatus1, 0x02, 2),
+                (AiclStatus, 0x03, 3),
+                (DevStatus2, 0x04, 4)
             ]
         );
 
@@ -91,13 +92,14 @@ mod tests {
 
         peripheral!(
             Max14748,
+            0x0A,
             5,
             [
-                (ChipId, 0x00),
-                (ChipRev, 0x01),
-                (DevStatus1, 0x02),
-                (AiclStatus, 0x03),
-                (DevStatus2, 0x04)
+                (ChipId, 0x00, 0),
+                (ChipRev, 0x01, 1),
+                (DevStatus1, 0x02, 2),
+                (AiclStatus, 0x03, 3),
+                (DevStatus2, 0x04, 4)
             ]
         );
 
@@ -142,13 +144,14 @@ mod tests {
 
         peripheral!(
             Max14748,
+            0x0A,
             5,
             [
-                (ChipId, 0x00),
-                (ChipRev, 0x01),
-                (DevStatus1, 0x02),
-                (AiclStatus, 0x03),
-                (DevStatus2, 0x04)
+                (ChipId, 0x00, 0),
+                (ChipRev, 0x01, 1),
+                (DevStatus1, 0x02, 2),
+                (AiclStatus, 0x03, 3),
+                (DevStatus2, 0x04, 4)
             ]
         );
 
@@ -166,13 +169,14 @@ mod tests {
 
         peripheral!(
             Max14748,
+            0x0A,
             5,
             [
-                (ChipId, 0x00),
-                (ChipRev, 0x01),
-                (DevStatus1, 0x02),
-                (AiclStatus, 0x03),
-                (DevStatus2, 0x04)
+                (ChipId, 0x00, 0),
+                (ChipRev, 0x01, 1),
+                (DevStatus1, 0x02, 2),
+                (AiclStatus, 0x03, 3),
+                (DevStatus2, 0x04, 4)
             ]
         );
 

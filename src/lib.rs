@@ -173,6 +173,14 @@ macro_rules! peripheral {
             pub fn get_i2c_address(&self) -> u16 {
                 self.i2c_addr
             }
+
+            // Sometimes an I2C device can have multiple address. Use this
+            // function to change the address of the device after it has been
+            // instantiated.
+            pub fn set_i2c_address(&mut self, addr: u16) -> &Self {
+                self.i2c_addr = addr;
+                self
+            }
         }
 
         type PeripheralType = $peripheral_name;

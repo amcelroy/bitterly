@@ -393,11 +393,18 @@ mod tests {
         bitfield!(BcStatus, DcdTmo, 2);
         bitrange!(BcStatus, ChgTyp, 1, 0, ChgTypEnum);
 
-        let max14748 = Max14748::new();
+        let mut max14748 = Max14748::new();
         max14748.DevStatus1().set_BatDet(true);
 
         let bcstatus = max14748.BcStatus().get_DcdTmo();
 
         max14748.JeitaStatus().clear();
+
+        let old_address = max14748.get_i2c_address();
+        max14748.set_i2c_address(0x6B);
+
+        let new_address = max14748.get_i2c_address();
+
+        assert_eq!(new_address, 0x6B);
     }
 }

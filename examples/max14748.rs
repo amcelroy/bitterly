@@ -14,7 +14,7 @@ pub fn main() {
     peripheral!(
         Max14748,
         0x0A,
-        53,
+        54,
         [
             (ChipId, 0x00, 0),
             (ChipRev, 0x01, 1),

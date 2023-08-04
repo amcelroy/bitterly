@@ -14,6 +14,10 @@
 ///
 ///
 
+pub enum Errors {
+    QuantizationError,
+}
+
 /// The register_backer! macro is used to generate a RegisterBacker struct that is used
 /// by subsequent macros, such as peripheral!. The generated struct has accessors
 /// to get / set / toggle / clear bits, as well as get a range of bits.
@@ -361,6 +365,43 @@ macro_rules! bitrange_raw {
                     }
 
                     self
+                }
+            }
+        }
+    };
+}
+
+/// Defines a bitrange and the correct getters and setters for the bitrange using
+/// a quantization value and a data type which quantizes the bitfield to an f32.
+/// 
+/// For example, on the Max17261, some 16 bit registers are two 8 bit registers that
+/// represent a real value such as voltage, temperate, etc. This macro allows 
+/// named and range checked access to the register in human readable units.
+#[macro_export]
+macro_rules! bitrange_quantized {
+    ($register:ident, $bitrange_name:ident, $msb:literal, $lsb:literal, $val_type:ty, $quantization:literal) => {
+        paste! {
+            trait $bitrange_name {
+                fn [<get_ $bitrange_name>](&self) -> f32;
+                fn [<set_ $bitrange_name>](&mut self, value: f32) -> Result<(), Errors>;
+            }
+
+            impl $bitrange_name for $register {
+                fn [<get_ $bitrange_name>](&self) -> f32 {
+                    unsafe {
+                        self.register.as_mut().unwrap().get_range(BitRange {stop_bit: $msb, start_bit: $lsb }) as f32 * $quantization as f32
+                    }
+                }
+
+                fn [<set_ $bitrange_name>](&mut self, value: f32) -> Result<(), Errors> {
+                    if value < 0.0 || value > $val_type::MAX as f32 * $quantization as f32 {
+                        Err(Errors::QuantizationError)
+                    }else{
+                        unsafe {
+                            self.register.as_mut().unwrap().set_range(BitRange { stop_bit: $msb, start_bit: $lsb }, (value / $quantization as f32) as $val_type);
+                        }
+                        Ok(())
+                    }
                 }
             }
         }

@@ -223,6 +223,38 @@ mod tests {
     }
 
     #[test]
+    fn bitrange_quantized_test() {
+        use bitterly::{
+            bitfield, bitrange, bitrange_enum_values, peripheral, register, register_backer, bitrange_quantized,
+        };
+        use paste::paste;
+
+        register_backer!(Register, u8);
+
+        peripheral!(
+            Max17261,
+            0x0A,
+            1,
+            [
+                (MaxMinVolt, 0x1B, 0),
+            ]
+        );
+
+        register!(MaxMinVolt);
+        bitrange_quantized!(MaxMinVolt, MaxVCell, 15, 8, u8, 0.02); // 20mv resolution
+        bitrange_quantized!(MaxMinVolt, MinVCell, 7, 0, u8, 0.02); // 20mv resolution
+
+        let mut max17261 = Max17261::new();
+
+        let mut result = max17261.MaxMinVolt().set_MaxVCell(4.0).unwrap();
+        let max_vcell = max17261.MaxMinVolt().get_MaxVCell();
+        assert_eq!(max_vcell, 4.0);
+
+        result = max17261.MaxMinVolt().set_MinVCell(-1);
+  
+    }
+
+    #[test]
     fn max14748_test() {
         use bitterly::{
             bitfield, bitrange, bitrange_enum_values, bitrange_raw, peripheral, register,

@@ -278,6 +278,32 @@ bitrange_raw!(ChipRev, RevH, 7, 4, u8);
 bitrange_raw!(ChipRev, RevL, 3, 0, u8);
 ```
 
+Some bitranges represent an actual, quantized measurement, such as voltage, current, etc.
+These can be handled by `bitrange_quantized!`, which currently produces and accepts `f32`
+quantization values for the `get_` and `set_` functions.
+
+The `bitrange_quantized!` macro expects:
+- `Register Name`: Should match that used in the `register!` macro.
+- `Name of the bitrange`: Name of the range of bits, used to name the get / set
+function.
+- `Upper Bit`: High bit of the range
+- `Lower Bit`: Low bit of the range
+- `type`: The underlying type to quantize. This used for error checking only. For example,
+if the register is 16-bit and split into two quantized 8-bit values, this should be `u8` or
+`i8` to check if the `set_` input value is `type::MIN <= input value <= type::MAX`.
+- `Quantization value`: `f32` value used to convert the unquantized to quantized data.  
+
+```
+// 16-bit backing register
+register_backer!(Register, u16);
+
+/** configure peripheral here **/
+
+register!(MaxMinVolt);
+bitrange_quantized!(MaxMinVolt, MaxVCell, 15, 8, u8, 0.02); // 20mv resolution
+bitrange_quantized!(MaxMinVolt, MinVCell, 7, 0, u8, 0.02); // 20mv resolution
+```
+
 
 
 

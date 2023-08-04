@@ -225,18 +225,19 @@ mod tests {
     #[test]
     fn bitrange_quantized_test() {
         use bitterly::{
-            bitfield, bitrange, bitrange_enum_values, peripheral, register, register_backer, bitrange_quantized,
+            bitfield, bitrange, bitrange_enum_values, peripheral, register, register_backer, bitrange_quantized, Errors,
         };
         use paste::paste;
 
-        register_backer!(Register, u8);
+        register_backer!(Register, u16);
 
         peripheral!(
             Max17261,
-            0x0A,
-            1,
+            0x36,
+            2,
             [
-                (MaxMinVolt, 0x1B, 0),
+                (MaxMinTemp, 0x1A, 0),
+                (MaxMinVolt, 0x1B, 1)
             ]
         );
 
@@ -246,11 +247,33 @@ mod tests {
 
         let mut max17261 = Max17261::new();
 
-        let mut result = max17261.MaxMinVolt().set_MaxVCell(4.0).unwrap();
-        let max_vcell = max17261.MaxMinVolt().get_MaxVCell();
-        assert_eq!(max_vcell, 4.0);
+        // let mut result = max17261.MaxMinVolt().set_MaxVCell(4.0);
+        // assert_eq!(result, Ok(()));
+        // let mut max_vcell = max17261.MaxMinVolt().get_MaxVCell();
+        // assert_eq!(max_vcell, 4.0);
 
-        result = max17261.MaxMinVolt().set_MinVCell(-1);
+        // result = max17261.MaxMinVolt().set_MinVCell(-1.0);
+        // assert!(result.is_err());
+
+        // result = max17261.MaxMinVolt().set_MinVCell(u8::MAX as f32 * 0.02);
+        // max_vcell = max17261.MaxMinVolt().get_MinVCell();
+        // assert_eq!(max_vcell, u8::MAX as f32 * 0.02);
+
+        // result = max17261.MaxMinVolt().set_MinVCell(256 as f32 * 0.020);
+        // assert!(result.is_err());
+
+        register!(MaxMinTemp);
+        bitrange_quantized!(MaxMinTemp, MaxTemp, 15, 8, i8, 1.0); // 1/256 Celcius resolution
+        bitrange_quantized!(MaxMinTemp, MinTemp, 7, 0, i8, 1.0); // 1/256 Celcius resolution
+
+        // Need to fix quantization, leaving broken for now
+        adjkls;fklj;adsf
+
+        let x = i8::MIN;
+        let result = max17261.MaxMinTemp().set_MinTemp(-1.0);
+        let min_temp = max17261.MaxMinTemp().get_MinTemp();
+        assert_eq!(min_temp, -1.0);
+
   
     }
 

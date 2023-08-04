@@ -14,6 +14,7 @@
 ///
 ///
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Errors {
     QuantizationError,
 }
@@ -394,11 +395,14 @@ macro_rules! bitrange_quantized {
                 }
 
                 fn [<set_ $bitrange_name>](&mut self, value: f32) -> Result<(), Errors> {
-                    if value < 0.0 || value > $val_type::MAX as f32 * $quantization as f32 {
+                    let min_check = $val_type::MIN as f32 * $quantization as f32;
+                    let max_check = $val_type::MAX as f32 * $quantization as f32;
+
+                    if value < $val_type::MIN as f32 * $quantization as f32 || value > $val_type::MAX as f32 * $quantization as f32 {
                         Err(Errors::QuantizationError)
                     }else{
                         unsafe {
-                            self.register.as_mut().unwrap().set_range(BitRange { stop_bit: $msb, start_bit: $lsb }, (value / $quantization as f32) as $val_type);
+                            self.register.as_mut().unwrap().set_range(BitRange { stop_bit: $msb, start_bit: $lsb }, (value / $quantization as f32) as RegisterType);
                         }
                         Ok(())
                     }

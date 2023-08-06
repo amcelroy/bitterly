@@ -390,19 +390,22 @@ macro_rules! bitrange_quantized {
             impl $bitrange_name for $register {
                 fn [<get_ $bitrange_name>](&self) -> f32 {
                     unsafe {
-                        self.register.as_mut().unwrap().get_range(BitRange {stop_bit: $msb, start_bit: $lsb }) as f32 * $quantization as f32
+                        let value = (self.register.as_mut().unwrap().get_range(BitRange {stop_bit: $msb, start_bit: $lsb }) as $val_type);
+                        let wrapped = value.wrapping_neg();
+                        let test = (wrapped as f32) * $quantization as f32;
+                        test
                     }
                 }
 
                 fn [<set_ $bitrange_name>](&mut self, value: f32) -> Result<(), Errors> {
-                    let min_check = $val_type::MIN as f32 * $quantization as f32;
-                    let max_check = $val_type::MAX as f32 * $quantization as f32;
-
                     if value < $val_type::MIN as f32 * $quantization as f32 || value > $val_type::MAX as f32 * $quantization as f32 {
                         Err(Errors::QuantizationError)
                     }else{
+                        let quantized_value = (value / $quantization as f32);
+                        let v2 = (quantized_value as $val_type).wrapping_neg();
+
                         unsafe {
-                            self.register.as_mut().unwrap().set_range(BitRange { stop_bit: $msb, start_bit: $lsb }, (value / $quantization as f32) as RegisterType);
+                            self.register.as_mut().unwrap().set_range(BitRange { stop_bit: $msb, start_bit: $lsb }, v2 as RegisterType);
                         }
                         Ok(())
                     }

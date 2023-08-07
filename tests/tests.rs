@@ -225,7 +225,8 @@ mod tests {
     #[test]
     fn bitrange_quantized_test() {
         use bitterly::{
-            bitfield, bitrange, bitrange_enum_values, peripheral, register, register_backer, bitrange_quantized, Errors,
+            bitfield, bitrange, bitrange_enum_values, bitrange_quantized, peripheral, register,
+            register_backer, Errors,
         };
         use paste::paste;
 
@@ -235,10 +236,7 @@ mod tests {
             Max17261,
             0x36,
             2,
-            [
-                (MaxMinTemp, 0x1A, 0),
-                (MaxMinVolt, 0x1B, 1)
-            ]
+            [(MaxMinTemp, 0x1A, 0), (MaxMinVolt, 0x1B, 1)]
         );
 
         let mut max17261 = Max17261::new();
@@ -266,7 +264,6 @@ mod tests {
         bitrange_quantized!(MaxMinTemp, MaxTemp, 15, 8, i8, 1.0); // 1/256 Celcius resolution
         bitrange_quantized!(MaxMinTemp, MinTemp, 7, 0, i8, 1.0); // 1/256 Celcius resolution
 
-        let x = i8::MIN;
         let mut i8_result = max17261.MaxMinTemp().set_MinTemp(-1.0);
         let mut min_temp = max17261.MaxMinTemp().get_MinTemp();
         assert_eq!(min_temp, -1.0);
@@ -284,8 +281,6 @@ mod tests {
 
         i8_result = max17261.MaxMinTemp().set_MinTemp(128.0);
         assert!(i8_result.is_err());
-
-  
     }
 
     #[test]

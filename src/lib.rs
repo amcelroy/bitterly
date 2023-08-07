@@ -374,9 +374,9 @@ macro_rules! bitrange_raw {
 
 /// Defines a bitrange and the correct getters and setters for the bitrange using
 /// a quantization value and a data type which quantizes the bitfield to an f32.
-/// 
+///
 /// For example, on the Max17261, some 16 bit registers are two 8 bit registers that
-/// represent a real value such as voltage, temperate, etc. This macro allows 
+/// represent a real value such as voltage, temperate, etc. This macro allows
 /// named and range checked access to the register in human readable units.
 #[macro_export]
 macro_rules! bitrange_quantized {
@@ -391,9 +391,9 @@ macro_rules! bitrange_quantized {
                 fn [<get_ $bitrange_name>](&self) -> f32 {
                     unsafe {
                         let value = (self.register.as_mut().unwrap().get_range(BitRange {stop_bit: $msb, start_bit: $lsb }) as $val_type);
-                        let wrapped = value.wrapping_neg();
-                        let test = (wrapped as f32) * $quantization as f32;
-                        test
+                        // Wrapping neg is for 2's complement
+                        // thanks: https://www.reddit.com/r/rust/comments/ekucxn/2s_complement/?utm_source=share&utm_medium=web2x&context=3
+                        (value.wrapping_neg() as f32) * $quantization as f32
                     }
                 }
 
@@ -401,11 +401,11 @@ macro_rules! bitrange_quantized {
                     if value < $val_type::MIN as f32 * $quantization as f32 || value > $val_type::MAX as f32 * $quantization as f32 {
                         Err(Errors::QuantizationError)
                     }else{
-                        let quantized_value = (value / $quantization as f32);
-                        let v2 = (quantized_value as $val_type).wrapping_neg();
-
+                        // Wrapping neg is for 2's complement
+                        // thanks: https://www.reddit.com/r/rust/comments/ekucxn/2s_complement/?utm_source=share&utm_medium=web2x&context=3
+                        let quant_val = ((value / $quantization as f32) as $val_type).wrapping_neg();
                         unsafe {
-                            self.register.as_mut().unwrap().set_range(BitRange { stop_bit: $msb, start_bit: $lsb }, v2 as RegisterType);
+                            self.register.as_mut().unwrap().set_range(BitRange { stop_bit: $msb, start_bit: $lsb }, quant_val as RegisterType);
                         }
                         Ok(())
                     }

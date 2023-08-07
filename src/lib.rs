@@ -356,13 +356,17 @@ macro_rules! bitrange_raw {
             impl $bitrange_name for $register {
                 fn [<get_ $bitrange_name>](&self) -> $val_type {
                     unsafe {
-                        self.register.as_mut().unwrap().get_range(BitRange {stop_bit: $msb, start_bit: $lsb })
+                        let value = (self.register.as_mut().unwrap().get_range(BitRange {stop_bit: $msb, start_bit: $lsb }) as $val_type);
+                        value.wrapping_neg()
                     }
                 }
 
                 fn [<set_ $bitrange_name>](&mut self, value: $val_type) -> &mut Self {
                     unsafe {
-                        self.register.as_mut().unwrap().set_range(BitRange { stop_bit: $msb, start_bit: $lsb }, value);
+                        // Wrapping neg is for 2's complement
+                        // thanks: https://www.reddit.com/r/rust/comments/ekucxn/2s_complement/?utm_source=share&utm_medium=web2x&context=3
+                        let comp = (value as $val_type).wrapping_neg();
+                        self.register.as_mut().unwrap().set_range(BitRange { stop_bit: $msb, start_bit: $lsb }, comp as RegisterType);
                     }
 
                     self

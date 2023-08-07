@@ -1,5 +1,4 @@
 pub fn main() {
-
     pub enum Max17261Error {
         InvalidVoltage,
         InvalidPercentage,
@@ -41,12 +40,12 @@ pub fn main() {
 
     macro_rules! voltage {
         ($register:ident, $quantization:literal) => {
-            paste! {   
+            paste! {
                 impl Voltage for $register {
                     fn to_voltage(&self) -> f32 {
                         self.register.as_mut().unwrap().contents() as f32 * $quantization as f32;
                     }
-    
+
                     fn from_voltage(&mut self, value: f32) {
                         if value < 0.0 || value > u16::MAX as f32 * $quantization as f32 {
                             Err(Max17261Error::InvalidVoltage)
@@ -60,7 +59,6 @@ pub fn main() {
         };
     }
 
-
     use bitterly::{
         bitfield, bitrange, bitrange_enum_values, bitrange_raw, peripheral, register,
         register_backer,
@@ -71,25 +69,27 @@ pub fn main() {
     register_backer!(Register, u16);
 
     peripheral!(
-        Max14748,
+        Max17261,
         0x0A,
-        1,
-        (Status, 0x00, 0),
-        (VAlrtTh, 0x01, 1),
-        (TAlrtTh, 0x02, 2),
-        (SAlrtTh, 0x03, 3),
-        (AtRate, 0x04, 4),
-        (RepCap, 0x05, 5),
-        (RepSOC, 0x06, 6),
-        (Age, 0x07, 7),
-        (Temp, 0x08, 8),
-        (VCell, 0x09, 9),
-        (Current, 0x0A, 10),
-        (AvgCurrent, 0x0B, 11),
-        (QResidual, 0x0C, 12),
-        (MixSOC, 0x0D, 13),
-        (AvailableSOC, 0x0E, 14),
-        (MixCap, 0x0F, 15),
+        16,
+        [
+            (Status, 0x00, 0),
+            (VAlrtTh, 0x01, 1),
+            (TAlrtTh, 0x02, 2),
+            (SAlrtTh, 0x03, 3),
+            (AtRate, 0x04, 4),
+            (RepCap, 0x05, 5),
+            (RepSOC, 0x06, 6),
+            (Age, 0x07, 7),
+            (Temp, 0x08, 8),
+            (VCell, 0x09, 9),
+            (RSenseCurrent, 0x0A, 10),
+            (AvgCurrent, 0x0B, 11),
+            (QResidual, 0x0C, 12),
+            (MixSOC, 0x0D, 13),
+            (AvailableSOC, 0x0E, 14),
+            (MixCap, 0x0F, 15)
+        ]
     );
 
     register!(Status);
@@ -131,7 +131,7 @@ pub fn main() {
 
     register!(VCell);
 
-    register!(Current);
+    register!(RSenseCurrent);
 
     register!(AvgCurrent);
 
@@ -142,5 +142,4 @@ pub fn main() {
     register!(AvailableSOC);
 
     register!(MixCap);
-
 }

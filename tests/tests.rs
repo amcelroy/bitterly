@@ -225,8 +225,8 @@ mod tests {
     #[test]
     fn bitrange_quantized_test() {
         use bitterly::{
-            bitfield, bitrange, bitrange_enum_values, bitrange_quantized, peripheral, register,
-            register_backer, Errors,
+            bitfield, bitrange, bitrange_enum_values, bitrange_quantized, bitrange_raw, peripheral,
+            register, register_backer, Errors,
         };
         use paste::paste;
 
@@ -235,8 +235,13 @@ mod tests {
         peripheral!(
             Max17261,
             0x36,
-            2,
-            [(MaxMinTemp, 0x1A, 0), (MaxMinVolt, 0x1B, 1)]
+            4,
+            [
+                (MaxMinTemp, 0x1A, 0),
+                (MaxMinVolt, 0x1B, 1),
+                (I8TestRegister, 0xFF, 2),
+                (I16TestRegister, 0xFE, 3)
+            ]
         );
 
         let mut max17261 = Max17261::new();
@@ -281,6 +286,29 @@ mod tests {
 
         i8_result = max17261.MaxMinTemp().set_MinTemp(128.0);
         assert!(i8_result.is_err());
+
+        register!(I8TestRegister);
+        bitrange_raw!(I8TestRegister, I8Upper, 15, 8, i8);
+        bitrange_raw!(I8TestRegister, I8Lower, 7, 0, i8);
+
+        max17261.I8TestRegister().set_I8Upper(127);
+        let mut i8_upper = max17261.I8TestRegister().get_I8Upper();
+        assert_eq!(i8_upper, 127);
+
+        max17261.I8TestRegister().set_I8Lower(-128);
+        let mut i8_lower = max17261.I8TestRegister().get_I8Lower();
+        assert_eq!(i8_lower, -128);
+
+        register!(I16TestRegister);
+        bitrange_raw!(I16TestRegister, SignedValue, 15, 0, i16);
+
+        max17261.I16TestRegister().set_SignedValue(-32768);
+        let mut signed_value = max17261.I16TestRegister().get_SignedValue();
+        assert_eq!(signed_value, -32768);
+
+        max17261.I16TestRegister().set_SignedValue(32767);
+        signed_value = max17261.I16TestRegister().get_SignedValue();
+        assert_eq!(signed_value, 32767);
     }
 
     #[test]

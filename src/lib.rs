@@ -175,6 +175,10 @@ macro_rules! peripheral {
                 self
             }
 
+            pub fn direct_read(&self, address: usize) -> RegisterType {
+                self.registers[address].contents()
+            }
+
             pub fn get_i2c_address(&self) -> u16 {
                 self.i2c_addr
             }
@@ -185,6 +189,10 @@ macro_rules! peripheral {
             pub fn set_i2c_address(&mut self, addr: u16) -> &Self {
                 self.i2c_addr = addr;
                 self
+            }
+
+            pub fn get_register_count(&self) -> usize {
+                $count
             }
         }
 

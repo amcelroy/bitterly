@@ -356,7 +356,7 @@ macro_rules! bitrange {
 macro_rules! bitrange_raw {
     ($register:ident, $bitrange_name:ident, $msb:literal, $lsb:literal, $val_type:ty) => {
         paste! {
-            trait $bitrange_name {
+            pub trait $bitrange_name {
                 fn [<get_ $bitrange_name>](&self) -> $val_type;
                 fn [<set_ $bitrange_name>](&mut self, value: $val_type) -> &mut Self;
             }
@@ -392,14 +392,29 @@ macro_rules! bitrange_raw {
 /// named and range checked access to the register in human readable units.
 #[macro_export]
 macro_rules! bitrange_quantized {
-    ($register:ident, $bitrange_name:ident, $msb:literal, $lsb:literal, $val_type:ty, $quantization:literal) => {
+    ($register:ident, $bitrange_name:ident, $msb:literal, $lsb:literal, $val_type:ty, $quantization:expr, $min:expr, $max:expr) => {
         paste! {
-            trait $bitrange_name {
+            pub trait $bitrange_name {
                 fn [<get_ $bitrange_name>](&self) -> f32;
-                fn [<set_ $bitrange_name>](&mut self, value: f32) -> Result<(), Errors>;
+                fn [<set_ $bitrange_name>](&mut self, value: f32) -> Option<$val_type>;
+                fn [<get_ $bitrange_name _quatization>](&self) -> f32;
+                fn [<get_ $bitrange_name _min>](&self) -> f32;
+                fn [<get_ $bitrange_name _max>](&self) -> f32;
             }
 
             impl $bitrange_name for $register {
+                fn [<get_ $bitrange_name _quatization>](&self) -> f32 {
+                    $quantization
+                }
+
+                fn [<get_ $bitrange_name _min>](&self) -> f32 {
+                    $min
+                }
+                
+                fn [<get_ $bitrange_name _max>](&self) -> f32{
+                    $max
+                }
+
                 fn [<get_ $bitrange_name>](&self) -> f32 {
                     unsafe {
                         let value = (self.register.as_mut().unwrap().get_range(BitRange {stop_bit: $msb, start_bit: $lsb }) as $val_type);
@@ -409,9 +424,9 @@ macro_rules! bitrange_quantized {
                     }
                 }
 
-                fn [<set_ $bitrange_name>](&mut self, value: f32) -> Result<(), Errors> {
-                    if value < $val_type::MIN as f32 * $quantization as f32 || value > $val_type::MAX as f32 * $quantization as f32 {
-                        Err(Errors::QuantizationError)
+                fn [<set_ $bitrange_name>](&mut self, value: f32) -> Option<$val_type> {
+                    if value < $min as f32 || value > $max {
+                        None
                     }else{
                         // Wrapping neg is for 2's complement
                         // thanks: https://www.reddit.com/r/rust/comments/ekucxn/2s_complement/?utm_source=share&utm_medium=web2x&context=3
@@ -419,7 +434,7 @@ macro_rules! bitrange_quantized {
                         unsafe {
                             self.register.as_mut().unwrap().set_range(BitRange { stop_bit: $msb, start_bit: $lsb }, quant_val as RegisterType);
                         }
-                        Ok(())
+                        Some(quant_val)
                     }
                 }
             }

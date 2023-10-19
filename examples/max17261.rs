@@ -197,7 +197,7 @@ bitrange_raw!(SAlrtTh, SMin, 7, 0, u8);
 register!(AtRate);
 bitrange_quantized!(
     AtRate,
-    Rate,
+    rate,
     15,
     0,
     i16,
@@ -209,7 +209,7 @@ bitrange_quantized!(
 register!(RepCap); // Capacity in mAH
 bitrange_quantized!(
     RepCap,
-    Capacity,
+    capacity,
     15,
     0,
     u16,
@@ -221,7 +221,7 @@ bitrange_quantized!(
 register!(RepSOC); // State of Charge in %, typically used for a GUI
 bitrange_quantized!(
     RepSOC,
-    SOC,
+    soc,
     15,
     0,
     u16,
@@ -233,7 +233,7 @@ bitrange_quantized!(
 register!(AgePercent); // Age of the battery in %, based on (FullCapRep / DesignCap)*100
 bitrange_quantized!(
     AgePercent,
-    Age,
+    age,
     15,
     0,
     u16,
@@ -245,7 +245,7 @@ bitrange_quantized!(
 register!(Temp); // Temperature of the Max17261 in degrees C
 bitrange_quantized!(
     Temp,
-    Temperature,
+    temperature,
     15,
     0,
     i16,
@@ -257,7 +257,7 @@ bitrange_quantized!(
 register!(VCell); // Voltage cell of the battery pack
 bitrange_quantized!(
     VCell,
-    Voltage,
+    voltage,
     15,
     0,
     u16,
@@ -269,7 +269,7 @@ bitrange_quantized!(
 register!(RSenseCurrent); // Voltge across the sense resistor, .01mOhm for our design
 bitrange_quantized!(
     RSenseCurrent,
-    Current,
+    current,
     15,
     0,
     i16,
@@ -281,7 +281,7 @@ bitrange_quantized!(
 register!(AvgCurrent); // Average current of RSenseCurrent
 bitrange_quantized!(
     AvgCurrent,
-    Current,
+    current,
     15,
     0,
     i16,
@@ -293,7 +293,7 @@ bitrange_quantized!(
 register!(QResidual); // Calculated charge in mAh that can't be accessed
 bitrange_quantized!(
     QResidual,
-    Capacity,
+    capacity,
     15,
     0,
     u16,
@@ -305,7 +305,7 @@ bitrange_quantized!(
 register!(MixSOC); // State of charge prior to compensation algorithms
 bitrange_quantized!(
     MixSOC,
-    SOC,
+    soc,
     15,
     0,
     u16,
@@ -317,7 +317,7 @@ bitrange_quantized!(
 register!(AvailableSOC); // Available State of Charge after compensation algorithms
 bitrange_quantized!(
     AvailableSOC,
-    SOC,
+    soc,
     15,
     0,
     u16,
@@ -329,7 +329,7 @@ bitrange_quantized!(
 register!(MixCap); // Capacity prior to compensation algorithms
 bitrange_quantized!(
     MixCap,
-    Capacity,
+    capacity,
     15,
     0,
     u16,
@@ -343,7 +343,7 @@ bitrange_quantized!(
 register!(FullCapRep); // Full capacity of the battery pack, typically reported to GUI
 bitrange_quantized!(
     FullCapRep,
-    Capacity,
+    capacity,
     15,
     0,
     u16,
@@ -355,7 +355,7 @@ bitrange_quantized!(
 register!(TimeToEmpty); // Time to empty in seconds
 bitrange_quantized!(
     TimeToEmpty,
-    Time,
+    time,
     15,
     0,
     u16,
@@ -369,7 +369,7 @@ register!(QRTable00);
 register!(FullSOCThr); // Full SOC threshold - defaults to 95%
 bitrange_quantized!(
     FullSOCThr,
-    Threshold,
+    threshold,
     15,
     3,
     u16,
@@ -381,7 +381,7 @@ bitrange_quantized!(
 register!(RCell); // Resistance of the cell
 bitrange_quantized!(
     RCell,
-    Resistance,
+    resistance,
     15,
     0,
     u16,
@@ -393,7 +393,7 @@ bitrange_quantized!(
 register!(AvgTA); // Average Temperature from the Temp register
 bitrange_quantized!(
     AvgTA,
-    Temperature,
+    temperature,
     15,
     0,
     i16,
@@ -403,12 +403,12 @@ bitrange_quantized!(
 );
 
 register!(Cycles); // Battery cycles
-bitrange_quantized!(Cycles, Cumulative, 15, 0, u16, 0.01, 0.0, 655.35);
+bitrange_quantized!(Cycles, cycles, 15, 0, u16, 0.01, 0.0, 655.35);
 
 register!(DesignCapacity); // Design capacity of the battery pack
 bitrange_quantized!(
     DesignCapacity,
-    Capacity,
+    capacity,
     15,
     0,
     u16,
@@ -420,7 +420,7 @@ bitrange_quantized!(
 register!(AvgVCell); // Avg voltage of the cell
 bitrange_quantized!(
     AvgVCell,
-    Voltage,
+    voltage,
     15,
     0,
     u16,
@@ -432,7 +432,7 @@ bitrange_quantized!(
 register!(MinMaxTemp);
 bitrange_quantized!(
     MinMaxTemp,
-    Max,
+    max,
     15,
     8,
     i8,
@@ -442,7 +442,7 @@ bitrange_quantized!(
 );
 bitrange_quantized!(
     MinMaxTemp,
-    Min,
+    min,
     7,
     0,
     i8,
@@ -455,7 +455,7 @@ const MIN_MAX_VOLT_QUANT: f32 = 0.02; // 20mV
 register!(MinMaxVolt);
 bitrange_quantized!(
     MinMaxVolt,
-    Max,
+    max,
     15,
     8,
     u8,
@@ -465,7 +465,7 @@ bitrange_quantized!(
 );
 bitrange_quantized!(
     MinMaxVolt,
-    Min,
+    min,
     7,
     0,
     u8,
@@ -478,7 +478,7 @@ const MIN_MAX_CURR_QUANT: f32 = 0.0004 / RSENSE; // .4mV / RSENSE
 register!(MinMaxCurr);
 bitrange_quantized!(
     MinMaxCurr,
-    Max,
+    max,
     15,
     8,
     i8,
@@ -488,7 +488,7 @@ bitrange_quantized!(
 );
 bitrange_quantized!(
     MinMaxCurr,
-    Min,
+    min,
     7,
     0,
     i8,
@@ -498,26 +498,26 @@ bitrange_quantized!(
 );
 
 register!(Config);
-bitfield!(Config, TSel, 15); // 0 use internal temp, 1 external thermister
-bitfield!(Config, SS, 14); // SOC: 1 alerts only cleared through software, 0 alerts auto cleared when measurment drops below threshold
-bitfield!(Config, TS, 13); // Temp: 1 alerts only cleared through software, 0 alerts auto cleared when measurment drops below threshold
-bitfield!(Config, VS, 12); // Voltage: 1 alerts only cleared through software, 0 alerts auto cleared when measurment drops below threshold
-bitfield!(Config, IS, 11); // Current: 1 alerts only cleared through software, 0 alerts auto cleared when measurment drops below threshold
-bitfield!(Config, THSH, 10); // Set to 1 to auto shutdown device when TH pin is not connected
-bitfield!(Config, Ten, 9); // Temp channel, see datasheet
-bitfield!(Config, Tex, 8); // Set to 0 to use on chip temps
-bitfield!(Config, SHDN, 7); // Set to 1 to shutdown chip after ShdnTimer expires
-bitfield!(Config, COMMSH, 6); // Set to 1 to shutdown chip after ShdnTimer expires if no I2C traffic
-bitfield!(Config, ETHRM, 4); // Set to 1 to measure TH pin
-bitfield!(Config, FTHRM, 3); // Set to 1 to enable thermister bias
-bitfield!(Config, Aen, 2); // Set to 1 to enable alerts to propigate to ALRT pin
-bitfield!(Config, Bei, 1); // Set to 1 to enable alert when battery is inserted (see TH pin)
-bitfield!(Config, Ber, 0); // Set to 1 to enable alert when battery is removed (see TH pin)
+bitfield!(Config, tsel, 15); // 0 use internal temp, 1 external thermister
+bitfield!(Config, ss, 14); // SOC: 1 alerts only cleared through software, 0 alerts auto cleared when measurment drops below threshold
+bitfield!(Config, ts, 13); // Temp: 1 alerts only cleared through software, 0 alerts auto cleared when measurment drops below threshold
+bitfield!(Config, vs, 12); // Voltage: 1 alerts only cleared through software, 0 alerts auto cleared when measurment drops below threshold
+bitfield!(Config, is, 11); // Current: 1 alerts only cleared through software, 0 alerts auto cleared when measurment drops below threshold
+bitfield!(Config, thsh, 10); // Set to 1 to auto shutdown device when TH pin is not connected
+bitfield!(Config, ten, 9); // Temp channel, see datasheet
+bitfield!(Config, tex, 8); // Set to 0 to use on chip temps
+bitfield!(Config, shdn, 7); // Set to 1 to shutdown chip after ShdnTimer expires
+bitfield!(Config, commsh, 6); // Set to 1 to shutdown chip after ShdnTimer expires if no I2C traffic
+bitfield!(Config, ethrm, 4); // Set to 1 to measure TH pin
+bitfield!(Config, fthrm, 3); // Set to 1 to enable thermister bias
+bitfield!(Config, aen, 2); // Set to 1 to enable alerts to propigate to ALRT pin
+bitfield!(Config, bei, 1); // Set to 1 to enable alert when battery is inserted (see TH pin)
+bitfield!(Config, ber, 0); // Set to 1 to enable alert when battery is removed (see TH pin)
 
 register!(IChgTerm); // Charge termination current (see datasheet)
 bitrange_quantized!(
     IChgTerm,
-    Current,
+    current,
     15,
     0,
     u16,
@@ -529,7 +529,7 @@ bitrange_quantized!(
 register!(AvCap); // Available capacity of the battery pack
 bitrange_quantized!(
     AvCap,
-    Capacity,
+    capacity,
     15,
     0,
     u16,
@@ -540,7 +540,7 @@ bitrange_quantized!(
 
 // 0x20 to 0x2F
 register!(TimeToFull); // Time to Full in seconds
-bitrange_quantized!(TimeToFull, Time, 15, 0, u16, TIME_QUANT, TIME_MIN, TIME_MAX);
+bitrange_quantized!(TimeToFull, time, 15, 0, u16, TIME_QUANT, TIME_MIN, TIME_MAX);
 
 register!(DevName); // Device name, should be 0x4033 for the MAX17261
 
@@ -549,7 +549,7 @@ register!(QRTable10);
 register!(FullCapNom); // Full discharge capacity with compensation under present conditions
 bitrange_quantized!(
     FullCapNom,
-    Capacity,
+    capacity,
     15,
     0,
     u16,
@@ -689,7 +689,7 @@ register!(RGain);
 register!(DQAcc); // Charge between relaxation points, debug register
 bitrange_quantized!(
     DQAcc,
-    Capacity,
+    capacity,
     15,
     0,
     u16,
@@ -701,7 +701,7 @@ bitrange_quantized!(
 register!(DPAcc);
 bitrange_quantized!(
     DPAcc,
-    Percent,
+    percent,
     15,
     0,
     u16,
@@ -715,7 +715,7 @@ register!(ConvgCfg); // Configures operation of the converge-to-empty feature
 register!(VFRemCap); // Remaining capacity WITHOUT compensation / adjustments
 bitrange_quantized!(
     VFRemCap,
-    Capacity,
+    capacity,
     15,
     0,
     u16,
@@ -727,7 +727,7 @@ bitrange_quantized!(
 register!(QH); // Raw coulomb counter value, useful for debugging
 bitrange_quantized!(
     QH,
-    Capacity,
+    capacity,
     15,
     0,
     u16,

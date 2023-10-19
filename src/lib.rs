@@ -394,7 +394,7 @@ macro_rules! bitrange_raw {
 macro_rules! bitrange_quantized {
     ($register:ident, $bitrange_name:ident, $msb:literal, $lsb:literal, $val_type:ty, $quantization:expr, $min:expr, $max:expr) => {
         paste! {
-            pub trait $bitrange_name {
+            pub trait [<$register _ $bitrange_name>] {
                 fn [<get_ $bitrange_name>](&self) -> f32;
                 fn [<set_ $bitrange_name>](&mut self, value: f32) -> Option<$val_type>;
                 fn [<get_ $bitrange_name _quatization>](&self) -> f32;
@@ -402,7 +402,7 @@ macro_rules! bitrange_quantized {
                 fn [<get_ $bitrange_name _max>](&self) -> f32;
             }
 
-            impl $bitrange_name for $register {
+            impl [<$register _ $bitrange_name>] for $register {
                 fn [<get_ $bitrange_name _quatization>](&self) -> f32 {
                     $quantization
                 }
@@ -410,7 +410,7 @@ macro_rules! bitrange_quantized {
                 fn [<get_ $bitrange_name _min>](&self) -> f32 {
                     $min
                 }
-                
+
                 fn [<get_ $bitrange_name _max>](&self) -> f32{
                     $max
                 }

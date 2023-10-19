@@ -73,6 +73,7 @@ A peripheral represents the device that contains the registers, like the
 Max17261 or Max14748. This is created using the `peripheral!` macro and takes
 the following arguments:
 - `Name`: The name of the peripheral struct to be created, for example `Max14748`
+- `I2C Address`: Address of the I2C device
 - `Number of registers`: This is used to allocate the memory used
 to store all of the registers. 
 - `Register Map`: This is a list of tuples that are the register name, the 
@@ -295,7 +296,7 @@ if the register is 16-bit and split into two quantized 8-bit values, this should
 - `Min quantized value`: `f32` quantized value will be this value or higher
 - `Max quantized value`: `f32` quantized value will be this or lower
 
-*Note* The `set_` function input should be `min <= user request value <= max`. If this is
+*Note:* The `set_` function input should be `min <= user request value <= max`. If this is
 not the case, the `set_` function returns `None`. If the value is valid, the returned value
 is `Some(quantized_value)`, where `quantized_value` is the integer representation stored in
 the bit values designated.
@@ -307,8 +308,8 @@ register_backer!(Register, u16);
 /** configure peripheral here **/
 
 register!(MaxMinVolt);
-bitrange_quantized!(MaxMinVolt, MaxVCell, 15, 8, u8, 0.02, 0.0, 255.0*0.02); // 20mv resolution
-bitrange_quantized!(MaxMinVolt, MinVCell, 7, 0, u8, 0.02, 0.0, 255.0*0.02); // 20mv resolution
+bitrange_quantized!(MaxMinVolt, MaxVCell, 15, 8, u8, 0.02, 0.0, u8::MAX as f32*0.02); // 20mv resolution
+bitrange_quantized!(MaxMinVolt, MinVCell, 7, 0, u8, 0.02, 0.0, u8::MAX as f32*0.02); // 20mv resolution
 ```
 
 

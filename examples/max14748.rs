@@ -861,5 +861,7 @@ pub fn main() {
     max14748.ChgStatus().get_ChgStat().unwrap();
     max14748.ChgStatus().set_ChgStat(ChgStatusEnum::Fault);
 
+    assert!(max14748.DevStatus1().get_ThrmSd120());
+
     let bcstatus = max14748.BcStatus().get_VbusDet();
 }

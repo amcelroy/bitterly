@@ -15,6 +15,10 @@ license = "MIT"
 name = "bitterly"
 path = "./src/lib.rs"
 
+[[test]]
+name = "bitterly"
+path = "./tests/bitterly.rs"
+
 [dependencies]
 paste = "1.0"
 

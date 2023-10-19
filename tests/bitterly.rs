@@ -247,27 +247,27 @@ mod tests {
         let mut max17261 = Max17261::new();
 
         register!(MaxMinVolt);
-        bitrange_quantized!(MaxMinVolt, MaxVCell, 15, 8, u8, 0.02); // 20mv resolution
-        bitrange_quantized!(MaxMinVolt, MinVCell, 7, 0, u8, 0.02); // 20mv resolution
+        bitrange_quantized!(MaxMinVolt, MaxVCell, 15, 8, u8, 0.02, 0.0, 255.0 * 0.02); // 20mv resolution
+        bitrange_quantized!(MaxMinVolt, MinVCell, 7, 0, u8, 0.02, 0.0, 255.0 * 0.02); // 20mv resolution
 
         let mut result = max17261.MaxMinVolt().set_MaxVCell(4.0);
-        assert_eq!(result, Ok(()));
+        assert!(result.is_some());
         let mut max_vcell = max17261.MaxMinVolt().get_MaxVCell();
         assert_eq!(max_vcell, 4.0);
 
         result = max17261.MaxMinVolt().set_MinVCell(-1.0);
-        assert!(result.is_err());
+        assert!(result.is_none());
 
         result = max17261.MaxMinVolt().set_MinVCell(u8::MAX as f32 * 0.02);
         max_vcell = max17261.MaxMinVolt().get_MinVCell();
         assert_eq!(max_vcell, u8::MAX as f32 * 0.02);
 
         result = max17261.MaxMinVolt().set_MinVCell(256 as f32 * 0.020);
-        assert!(result.is_err());
+        assert!(result.is_none());
 
         register!(MaxMinTemp);
-        bitrange_quantized!(MaxMinTemp, MaxTemp, 15, 8, i8, 1.0); // 1/256 Celcius resolution
-        bitrange_quantized!(MaxMinTemp, MinTemp, 7, 0, i8, 1.0); // 1/256 Celcius resolution
+        bitrange_quantized!(MaxMinTemp, MaxTemp, 15, 8, i8, 1.0, -128.0, 127.0); // 1/256 Celcius resolution
+        bitrange_quantized!(MaxMinTemp, MinTemp, 7, 0, i8, 1.0, -128.0, 127.0); // 1/256 Celcius resolution
 
         let mut i8_result = max17261.MaxMinTemp().set_MinTemp(-1.0);
         let mut min_temp = max17261.MaxMinTemp().get_MinTemp();
@@ -278,14 +278,14 @@ mod tests {
         assert_eq!(min_temp, -128.0);
 
         i8_result = max17261.MaxMinTemp().set_MinTemp(-129.0);
-        assert!(i8_result.is_err());
+        assert!(i8_result.is_none());
 
         i8_result = max17261.MaxMinTemp().set_MinTemp(127.0);
         min_temp = max17261.MaxMinTemp().get_MinTemp();
         assert_eq!(min_temp, 127.0);
 
         i8_result = max17261.MaxMinTemp().set_MinTemp(128.0);
-        assert!(i8_result.is_err());
+        assert!(i8_result.is_none());
 
         register!(I8TestRegister);
         bitrange_raw!(I8TestRegister, I8Upper, 15, 8, i8);

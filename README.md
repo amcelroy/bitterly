@@ -290,8 +290,15 @@ function.
 - `Lower Bit`: Low bit of the range
 - `type`: The underlying type to quantize. This used for error checking only. For example,
 if the register is 16-bit and split into two quantized 8-bit values, this should be `u8` or
-`i8` to check if the `set_` input value is `type::MIN <= input value <= type::MAX`.
+`i8`.
 - `Quantization value`: `f32` value used to convert the unquantized to quantized data.  
+- `Min quantized value`: `f32` quantized value will be this value or higher
+- `Max quantized value`: `f32` quantized value will be this or lower
+
+*Note* The `set_` function input should be `min <= user request value <= max`. If this is
+not the case, the `set_` function returns `None`. If the value is valid, the returned value
+is `Some(quantized_value)`, where `quantized_value` is the integer representation stored in
+the bit values designated.
 
 ```
 // 16-bit backing register
@@ -300,8 +307,8 @@ register_backer!(Register, u16);
 /** configure peripheral here **/
 
 register!(MaxMinVolt);
-bitrange_quantized!(MaxMinVolt, MaxVCell, 15, 8, u8, 0.02); // 20mv resolution
-bitrange_quantized!(MaxMinVolt, MinVCell, 7, 0, u8, 0.02); // 20mv resolution
+bitrange_quantized!(MaxMinVolt, MaxVCell, 15, 8, u8, 0.02, 0.0, 255.0*0.02); // 20mv resolution
+bitrange_quantized!(MaxMinVolt, MinVCell, 7, 0, u8, 0.02, 0.0, 255.0*0.02); // 20mv resolution
 ```
 
 

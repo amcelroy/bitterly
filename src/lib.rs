@@ -390,6 +390,10 @@ macro_rules! bitrange_raw {
 /// For example, on the Max17261, some 16 bit registers are two 8 bit registers that
 /// represent a real value such as voltage, temperate, etc. This macro allows
 /// named and range checked access to the register in human readable units.
+/// The macro requires a quantization value and the floating point min and max expected.
+/// This is used to test input values when the setter is called; if the setter value
+/// is outside the min / max range, the setter returns None, otherwise the returned
+/// value is the Some(quantized_value) that would be stored in the register.
 #[macro_export]
 macro_rules! bitrange_quantized {
     ($register:ident, $bitrange_name:ident, $msb:literal, $lsb:literal, $val_type:ty, $quantization:expr, $min:expr, $max:expr) => {

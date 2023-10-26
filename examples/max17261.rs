@@ -43,7 +43,7 @@ pub fn main() {
 
     peripheral!(
         Max17261,
-        0x0A,
+        0x36,
         112,
         [
             // 0x00 to 0x10

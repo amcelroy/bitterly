@@ -25,9 +25,9 @@ pub enum Errors {
 #[macro_export]
 macro_rules! register_backer {
     ($reg_name:ident, $reg_type:ty) => {
-        type RegisterType = $reg_type;
+        pub type RegisterType = $reg_type;
 
-        type RegisterBacker = $reg_name;
+        pub type RegisterBacker = $reg_name;
 
         #[derive(Copy, Clone)]
         pub struct $reg_name {
@@ -142,7 +142,7 @@ macro_rules! register_backer {
 macro_rules! peripheral {
     //($enum_name:ident, $enum_type:ty, [$(($name:ident, $value:literal)),+]) => {
 
-    ($peripheral_name:ident, $i2c_addr:literal, $count:literal, [$(($register:ident, $addr:literal, $index:literal)),+]) => {
+    ($peripheral_name:ident, $address_type:ty, $i2c_addr:literal, $count:literal, [$(($register:ident, $addr:literal, $index:literal)),+]) => {
         #[derive(Debug, Copy, Clone, PartialEq, Eq)]
         pub enum RegisterAddress {
             $(
@@ -159,24 +159,63 @@ macro_rules! peripheral {
 
         pub struct $peripheral_name {
             registers: [RegisterBacker; $count],
+            address_index: [$address_type; $count],
             i2c_addr: u16,
         }
 
         impl $peripheral_name {
             pub fn new() -> Self {
+                let mut address_index: [$address_type; $count] = [0; $count];
+
+                $(
+                    address_index[$index as usize] = $addr as $address_type;
+                )+
+
                 $peripheral_name {
                     registers: [RegisterBacker { contents: 0 }; $count],
+                    address_index,
                     i2c_addr: $i2c_addr,
                 }
             }
 
-            pub fn direct_update(&mut self, address: usize, val: RegisterType) -> &mut Self {
-                self.registers[address].update(val);
+            pub fn find_index_by_address(&self, address: usize) -> Option<usize> {
+                for i in 0..$count {
+                    if self.address_index[i] == address as $address_type {
+                        return Some(i);
+                    }
+                }
+
+                None
+            }
+
+            pub fn direct_update_by_address(&mut self, address: usize, val: RegisterType) -> &mut Self {
+                let index = self.find_index_by_address(address);
+                match index {
+                    Some(i) => {
+                        self.registers[i].update(val);
+                    },
+                    None => {
+                        panic!("Address not found");
+                    }
+                }
                 self
             }
 
-            pub fn direct_read(&self, address: usize) -> RegisterType {
-                self.registers[address].contents()
+            pub fn direct_read_by_address(&self, address: usize) -> RegisterType {
+                let index = self.find_index_by_address(address);
+                match index {
+                    Some(i) => {
+                        return self.registers[i].contents();
+                    },
+                    None => {
+                        panic!("Address not found");
+                    }
+                }
+            }
+
+            pub fn direct_update_by_index(&mut self, index: usize, val: RegisterType) -> &mut Self {
+                self.registers[index].update(val);
+                self
             }
 
             pub fn get_i2c_address(&self) -> u16 {

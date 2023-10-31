@@ -297,12 +297,12 @@ macro_rules! register {
 macro_rules! bitfield {
     ($register:ident, $bitfield_name:ident, $bit:literal) => {
         paste! {
-            pub trait $bitfield_name {
+            pub trait [<$register _ $bitfield_name>]{
                 fn [<get_ $bitfield_name>](&self) -> bool;
                 fn [<set_ $bitfield_name>](&mut self, value: bool) -> &mut Self;
             }
 
-            impl $bitfield_name for $register {
+            impl [<$register _ $bitfield_name>] for $register {
                 fn [<get_ $bitfield_name>](&self) -> bool {
                     unsafe {
                         self.register.as_mut().unwrap().is_set($bit)
@@ -363,12 +363,12 @@ macro_rules! bitrange_enum_values {
 macro_rules! bitrange {
     ($register:ident, $bitrange_name:ident, $msb:literal, $lsb:literal, $val_type:ty) => {
         paste! {
-            pub trait $bitrange_name {
+            pub trait [<$register _ $bitrange_name>] {
                 fn [<get_ $bitrange_name>](&self) -> Option<$val_type>;
                 fn [<set_ $bitrange_name>](&mut self, value: $val_type) -> &mut Self;
             }
 
-            impl $bitrange_name for $register {
+            impl [<$register _ $bitrange_name>] for $register {
                 fn [<get_ $bitrange_name>](&self) -> Option<$val_type> {
                     unsafe {
                         let val = self.register.as_mut().unwrap().get_range(BitRange {stop_bit: $msb, start_bit: $lsb });
@@ -395,12 +395,12 @@ macro_rules! bitrange {
 macro_rules! bitrange_raw {
     ($register:ident, $bitrange_name:ident, $msb:literal, $lsb:literal, $val_type:ty) => {
         paste! {
-            pub trait $bitrange_name {
+            pub trait [<$register _ $bitrange_name>] {
                 fn [<get_ $bitrange_name>](&self) -> $val_type;
                 fn [<set_ $bitrange_name>](&mut self, value: $val_type) -> &mut Self;
             }
 
-            impl $bitrange_name for $register {
+            impl [<$register _ $bitrange_name>] for $register {
                 fn [<get_ $bitrange_name>](&self) -> $val_type {
                     unsafe {
                         let value = (self.register.as_mut().unwrap().get_range(BitRange {stop_bit: $msb, start_bit: $lsb }) as $val_type);

@@ -58,6 +58,7 @@ mod tests {
 
         peripheral!(
             Max14748,
+            u8,
             0x0A,
             5,
             [
@@ -92,6 +93,7 @@ mod tests {
 
         peripheral!(
             Max14748,
+            u8,
             0x0A,
             5,
             [
@@ -144,6 +146,7 @@ mod tests {
 
         peripheral!(
             Max14748,
+            u8,
             0x0A,
             5,
             [
@@ -169,6 +172,7 @@ mod tests {
 
         peripheral!(
             Max14748,
+            u8,
             0x0A,
             5,
             [
@@ -234,6 +238,7 @@ mod tests {
 
         peripheral!(
             Max17261,
+            u8,
             0x36,
             4,
             [
@@ -324,8 +329,9 @@ mod tests {
 
         peripheral!(
             Max14748,
+            u8,
             0x0A,
-            8,
+            9,
             [
                 (ChipId, 0x00, 0),
                 (ChipRev, 0x01, 1),

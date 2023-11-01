@@ -404,15 +404,13 @@ macro_rules! bitrange_raw {
                 fn [<get_ $bitrange_name>](&self) -> $val_type {
                     unsafe {
                         let value = (self.register.as_mut().unwrap().get_range(BitRange {stop_bit: $msb, start_bit: $lsb }) as $val_type);
-                        value.wrapping_neg()
+                        value
                     }
                 }
 
                 fn [<set_ $bitrange_name>](&mut self, value: $val_type) -> &mut Self {
                     unsafe {
-                        // Wrapping neg is for 2's complement
-                        // thanks: https://www.reddit.com/r/rust/comments/ekucxn/2s_complement/?utm_source=share&utm_medium=web2x&context=3
-                        let comp = (value as $val_type).wrapping_neg();
+                        let comp = (value as $val_type);
                         self.register.as_mut().unwrap().set_range(BitRange { stop_bit: $msb, start_bit: $lsb }, comp as RegisterType);
                     }
 
@@ -461,9 +459,7 @@ macro_rules! bitrange_quantized {
                 fn [<get_ $bitrange_name>](&self) -> f32 {
                     unsafe {
                         let value = (self.register.as_mut().unwrap().get_range(BitRange {stop_bit: $msb, start_bit: $lsb }) as $val_type);
-                        // Wrapping neg is for 2's complement
-                        // thanks: https://www.reddit.com/r/rust/comments/ekucxn/2s_complement/?utm_source=share&utm_medium=web2x&context=3
-                        (value.wrapping_neg() as f32) * $quantization as f32
+                        (value as f32) * $quantization as f32
                     }
                 }
 
@@ -471,9 +467,7 @@ macro_rules! bitrange_quantized {
                     if value < $min as f32 || value > $max {
                         None
                     }else{
-                        // Wrapping neg is for 2's complement
-                        // thanks: https://www.reddit.com/r/rust/comments/ekucxn/2s_complement/?utm_source=share&utm_medium=web2x&context=3
-                        let quant_val = ((value / $quantization as f32) as $val_type).wrapping_neg();
+                        let quant_val = ((value / $quantization as f32) as $val_type);
                         unsafe {
                             self.register.as_mut().unwrap().set_range(BitRange { stop_bit: $msb, start_bit: $lsb }, quant_val as RegisterType);
                         }

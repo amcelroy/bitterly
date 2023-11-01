@@ -25,9 +25,9 @@ pub enum Errors {
 #[macro_export]
 macro_rules! register_backer {
     ($reg_name:ident, $reg_type:ty) => {
-        type RegisterType = $reg_type;
+        pub type RegisterType = $reg_type;
 
-        type RegisterBacker = $reg_name;
+        pub type RegisterBacker = $reg_name;
 
         #[derive(Copy, Clone)]
         pub struct $reg_name {
@@ -142,7 +142,7 @@ macro_rules! register_backer {
 macro_rules! peripheral {
     //($enum_name:ident, $enum_type:ty, [$(($name:ident, $value:literal)),+]) => {
 
-    ($peripheral_name:ident, $i2c_addr:literal, $count:literal, [$(($register:ident, $addr:literal, $index:literal)),+]) => {
+    ($peripheral_name:ident, $address_type:ty, $i2c_addr:literal, $count:literal, [$(($register:ident, $addr:literal, $index:literal)),+]) => {
         #[derive(Debug, Copy, Clone, PartialEq, Eq)]
         pub enum RegisterAddress {
             $(
@@ -159,24 +159,63 @@ macro_rules! peripheral {
 
         pub struct $peripheral_name {
             registers: [RegisterBacker; $count],
+            address_index: [$address_type; $count],
             i2c_addr: u16,
         }
 
         impl $peripheral_name {
             pub fn new() -> Self {
+                let mut address_index: [$address_type; $count] = [0; $count];
+
+                $(
+                    address_index[$index as usize] = $addr as $address_type;
+                )+
+
                 $peripheral_name {
                     registers: [RegisterBacker { contents: 0 }; $count],
+                    address_index,
                     i2c_addr: $i2c_addr,
                 }
             }
 
-            pub fn direct_update(&mut self, address: usize, val: RegisterType) -> &mut Self {
-                self.registers[address].update(val);
+            pub fn find_index_by_address(&self, address: usize) -> Option<usize> {
+                for i in 0..$count {
+                    if self.address_index[i] == address as $address_type {
+                        return Some(i);
+                    }
+                }
+
+                None
+            }
+
+            pub fn direct_update_by_address(&mut self, address: usize, val: RegisterType) -> &mut Self {
+                let index = self.find_index_by_address(address);
+                match index {
+                    Some(i) => {
+                        self.registers[i].update(val);
+                    },
+                    None => {
+                        panic!("Address not found");
+                    }
+                }
                 self
             }
 
-            pub fn direct_read(&self, address: usize) -> RegisterType {
-                self.registers[address].contents()
+            pub fn direct_read_by_address(&self, address: usize) -> RegisterType {
+                let index = self.find_index_by_address(address);
+                match index {
+                    Some(i) => {
+                        return self.registers[i].contents();
+                    },
+                    None => {
+                        panic!("Address not found");
+                    }
+                }
+            }
+
+            pub fn direct_update_by_index(&mut self, index: usize, val: RegisterType) -> &mut Self {
+                self.registers[index].update(val);
+                self
             }
 
             pub fn get_i2c_address(&self) -> u16 {
@@ -258,12 +297,12 @@ macro_rules! register {
 macro_rules! bitfield {
     ($register:ident, $bitfield_name:ident, $bit:literal) => {
         paste! {
-            pub trait $bitfield_name {
+            pub trait [<$register _ $bitfield_name>]{
                 fn [<get_ $bitfield_name>](&self) -> bool;
                 fn [<set_ $bitfield_name>](&mut self, value: bool) -> &mut Self;
             }
 
-            impl $bitfield_name for $register {
+            impl [<$register _ $bitfield_name>] for $register {
                 fn [<get_ $bitfield_name>](&self) -> bool {
                     unsafe {
                         self.register.as_mut().unwrap().is_set($bit)
@@ -324,12 +363,12 @@ macro_rules! bitrange_enum_values {
 macro_rules! bitrange {
     ($register:ident, $bitrange_name:ident, $msb:literal, $lsb:literal, $val_type:ty) => {
         paste! {
-            pub trait $bitrange_name {
+            pub trait [<$register _ $bitrange_name>] {
                 fn [<get_ $bitrange_name>](&self) -> Option<$val_type>;
                 fn [<set_ $bitrange_name>](&mut self, value: $val_type) -> &mut Self;
             }
 
-            impl $bitrange_name for $register {
+            impl [<$register _ $bitrange_name>] for $register {
                 fn [<get_ $bitrange_name>](&self) -> Option<$val_type> {
                     unsafe {
                         let val = self.register.as_mut().unwrap().get_range(BitRange {stop_bit: $msb, start_bit: $lsb });
@@ -356,24 +395,22 @@ macro_rules! bitrange {
 macro_rules! bitrange_raw {
     ($register:ident, $bitrange_name:ident, $msb:literal, $lsb:literal, $val_type:ty) => {
         paste! {
-            pub trait $bitrange_name {
+            pub trait [<$register _ $bitrange_name>] {
                 fn [<get_ $bitrange_name>](&self) -> $val_type;
                 fn [<set_ $bitrange_name>](&mut self, value: $val_type) -> &mut Self;
             }
 
-            impl $bitrange_name for $register {
+            impl [<$register _ $bitrange_name>] for $register {
                 fn [<get_ $bitrange_name>](&self) -> $val_type {
                     unsafe {
                         let value = (self.register.as_mut().unwrap().get_range(BitRange {stop_bit: $msb, start_bit: $lsb }) as $val_type);
-                        value.wrapping_neg()
+                        value
                     }
                 }
 
                 fn [<set_ $bitrange_name>](&mut self, value: $val_type) -> &mut Self {
                     unsafe {
-                        // Wrapping neg is for 2's complement
-                        // thanks: https://www.reddit.com/r/rust/comments/ekucxn/2s_complement/?utm_source=share&utm_medium=web2x&context=3
-                        let comp = (value as $val_type).wrapping_neg();
+                        let comp = (value as $val_type);
                         self.register.as_mut().unwrap().set_range(BitRange { stop_bit: $msb, start_bit: $lsb }, comp as RegisterType);
                     }
 
@@ -422,9 +459,7 @@ macro_rules! bitrange_quantized {
                 fn [<get_ $bitrange_name>](&self) -> f32 {
                     unsafe {
                         let value = (self.register.as_mut().unwrap().get_range(BitRange {stop_bit: $msb, start_bit: $lsb }) as $val_type);
-                        // Wrapping neg is for 2's complement
-                        // thanks: https://www.reddit.com/r/rust/comments/ekucxn/2s_complement/?utm_source=share&utm_medium=web2x&context=3
-                        (value.wrapping_neg() as f32) * $quantization as f32
+                        (value as f32) * $quantization as f32
                     }
                 }
 
@@ -432,9 +467,7 @@ macro_rules! bitrange_quantized {
                     if value < $min as f32 || value > $max {
                         None
                     }else{
-                        // Wrapping neg is for 2's complement
-                        // thanks: https://www.reddit.com/r/rust/comments/ekucxn/2s_complement/?utm_source=share&utm_medium=web2x&context=3
-                        let quant_val = ((value / $quantization as f32) as $val_type).wrapping_neg();
+                        let quant_val = ((value / $quantization as f32) as $val_type);
                         unsafe {
                             self.register.as_mut().unwrap().set_range(BitRange { stop_bit: $msb, start_bit: $lsb }, quant_val as RegisterType);
                         }

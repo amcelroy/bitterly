@@ -13,6 +13,7 @@ pub fn main() {
 
     peripheral!(
         Max14748,
+        u8,
         0x0A,
         54,
         [

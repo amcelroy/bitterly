@@ -58,6 +58,7 @@ mod tests {
 
         peripheral!(
             Max14748,
+            u8,
             0x0A,
             5,
             [
@@ -92,6 +93,7 @@ mod tests {
 
         peripheral!(
             Max14748,
+            u8,
             0x0A,
             5,
             [
@@ -144,6 +146,7 @@ mod tests {
 
         peripheral!(
             Max14748,
+            u8,
             0x0A,
             5,
             [
@@ -169,6 +172,7 @@ mod tests {
 
         peripheral!(
             Max14748,
+            u8,
             0x0A,
             5,
             [
@@ -234,6 +238,7 @@ mod tests {
 
         peripheral!(
             Max17261,
+            u8,
             0x36,
             4,
             [
@@ -287,6 +292,16 @@ mod tests {
         i8_result = max17261.MaxMinTemp().set_MinTemp(128.0);
         assert!(i8_result.is_none());
 
+        i8_result = max17261.MaxMinTemp().set_MaxTemp(128.0);
+        assert!(i8_result.is_none());
+
+        let msb = max17261.MaxMinTemp().set_MaxTemp(127.0).unwrap();
+        let lsb = max17261.MaxMinTemp().set_MinTemp(-128.0).unwrap();
+
+        let reconstructed_value = u16::from_le_bytes([lsb as u8, msb as u8]);
+        let raw_register = max17261.MaxMinTemp().contents();
+        assert_eq!(reconstructed_value, raw_register);
+
         register!(I8TestRegister);
         bitrange_raw!(I8TestRegister, I8Upper, 15, 8, i8);
         bitrange_raw!(I8TestRegister, I8Lower, 7, 0, i8);
@@ -324,8 +339,9 @@ mod tests {
 
         peripheral!(
             Max14748,
+            u8,
             0x0A,
-            8,
+            9,
             [
                 (ChipId, 0x00, 0),
                 (ChipRev, 0x01, 1),

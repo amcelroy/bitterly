@@ -1,2 +1,2 @@
 test_osx:
-	cargo test --target x86_64-apple-darwin
+	cargo test --target aarch64-apple-darwin
